@@ -11,6 +11,7 @@ import ApiManagement from "@/pages/ApiManagement";
 import ApiDocumentation from "@/pages/ApiDocumentation";
 import MainLayout from "@/components/layout/MainLayout";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 function Router() {
@@ -38,12 +39,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <MainLayout>
-          <Router />
-        </MainLayout>
-        <Toaster />
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <MainLayout>
+            <Router />
+          </MainLayout>
+          <Toaster />
+        </AuthProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

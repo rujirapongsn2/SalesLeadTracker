@@ -10,7 +10,8 @@ import {
   LogOut,
   User,
   UserCircle,
-  UserCog
+  UserCog,
+  Languages
 } from "lucide-react";
 import {
   Sheet,
@@ -32,12 +33,14 @@ import {
 } from "@/components/ui/avatar";
 import Sidebar from "./Sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useLocation } from "wouter";
 import { UserProfileDialog } from "../user/UserProfileDialog";
 
 export const Header = () => {
   const [searchValue, setSearchValue] = useState("");
   const { currentUser, logout } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const [, setLocation] = useLocation();
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
@@ -79,11 +82,35 @@ export const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
+          {/* Language Switcher */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700">
+                <Languages className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>{t('app.language')}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className={language === 'th' ? 'bg-gray-100' : ''} 
+                onClick={() => setLanguage('th')}
+              >
+                <span className="mr-2">🇹🇭</span> {t('app.language.thai')}
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className={language === 'en' ? 'bg-gray-100' : ''} 
+                onClick={() => setLanguage('en')}
+              >
+                <span className="mr-2">🇬🇧</span> {t('app.language.english')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Button variant="ghost" size="icon" className="relative text-gray-500 hover:text-gray-700">
             <Bell className="h-5 w-5" />
             <span className="absolute -top-1 -right-1 bg-red-500 rounded-full w-4 h-4 text-xs text-white flex items-center justify-center">3</span>
           </Button>
-
           
           <div className="hidden md:flex items-center gap-3">
             <Avatar className="w-8 h-8 mr-2 cursor-pointer" onClick={() => setProfileDialogOpen(true)}>
@@ -105,7 +132,7 @@ export const Header = () => {
               }}
             >
               <LogOut className="h-4 w-4" />
-              <span className="text-xs">Logout</span>
+              <span className="text-xs">{t('nav.logout')}</span>
             </Button>
           </div>
         </div>
