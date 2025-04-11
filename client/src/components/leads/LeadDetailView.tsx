@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Lead, leadStatusEnum, leadSourceEnum } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Loader2, X, Edit, Save } from "lucide-react";
+import { Loader2, X, Edit, Save, Trash2, AlertTriangle } from "lucide-react";
+import { useLocation } from "wouter";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +13,16 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskList } from "./TaskList";
@@ -66,6 +78,9 @@ interface LeadDetailViewProps {
 export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps) => {
   const [activeTab, setActiveTab] = useState<string>("details");
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [, navigate] = useLocation();
+  const { currentUser, hasPermission } = useAuth();
   const { toast } = useToast();
 
   const { data, isLoading, error } = useQuery<Lead | null>({
@@ -144,6 +159,45 @@ export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps)
       
       // Check if the error is a permission error
       const errorMessage = error.message || "Failed to update lead";
+      const isPermissionError = errorMessage.includes("permission") || 
+                               errorMessage.includes("Permission") ||
+                               errorMessage.includes("creator") ||
+                               errorMessage.includes("Administrator") ||
+                               errorMessage.includes("Sales Manager");
+      
+      toast({
+        title: isPermissionError ? "Permission Denied" : "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Mutation for deleting lead
+  const deleteLeadMutation = useMutation({
+    mutationFn: async () => {
+      if (!leadId) throw new Error("Lead ID is required");
+      const response = await apiRequest('DELETE', `/api/leads/${leadId}`);
+      if (response.status === 403) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Permission denied");
+      }
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/leads'] });
+      toast({
+        title: "Success",
+        description: "Lead deleted successfully",
+      });
+      onClose();
+      navigate('/leads');
+    },
+    onError: (error: any) => {
+      console.error("Error deleting lead:", error);
+      
+      // Check if the error is a permission error
+      const errorMessage = error.message || "Failed to delete lead";
       const isPermissionError = errorMessage.includes("permission") || 
                                errorMessage.includes("Permission") ||
                                errorMessage.includes("creator") ||
@@ -590,9 +644,62 @@ export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps)
           </div>
         )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Close</Button>
+        <DialogFooter className="flex justify-between">
+          <div>
+            {data && !isEditing && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setIsDeleteDialogOpen(true)}
+                disabled={deleteLeadMutation.isPending}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </Button>
+            )}
+          </div>
+          <Button variant="outline" onClick={onClose}>
+            Close
+          </Button>
         </DialogFooter>
+        
+        {/* Confirmation dialog for deleting lead */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                <div className="flex items-center">
+                  <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+                  Confirm Deletion
+                </div>
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this lead? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel 
+                disabled={deleteLeadMutation.isPending}
+              >
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteLeadMutation.mutate()}
+                disabled={deleteLeadMutation.isPending}
+                className="bg-red-500 hover:bg-red-600"
+              >
+                {deleteLeadMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete"
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   );
