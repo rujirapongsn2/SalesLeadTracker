@@ -56,9 +56,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Using port 3000 instead of 5000 to avoid conflicts
+  // Using port 5000 to match Replit's expected port
   // this serves both the API and the client.
-  const port = 3000;
+  const port = 5000;
   server.listen({
     port,
     host: "0.0.0.0",

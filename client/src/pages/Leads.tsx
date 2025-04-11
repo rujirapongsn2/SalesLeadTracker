@@ -43,6 +43,14 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { LeadDetailView } from "@/components/leads/LeadDetailView";
 import { DateRangePicker, DateRange } from "@/components/ui/date-range-picker";
+import AddLeadForm from "@/components/leads/AddLeadForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Leads = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,6 +63,7 @@ export const Leads = () => {
     to: undefined
   });
   const [dateQueryParams, setDateQueryParams] = useState("");
+  const [isAddLeadDialogOpen, setIsAddLeadDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Format date for API query parameters
@@ -308,11 +317,25 @@ export const Leads = () => {
         onClose={() => setIsDetailViewOpen(false)}
       />
       
+      {/* Add Lead Dialog */}
+      <Dialog open={isAddLeadDialogOpen} onOpenChange={setIsAddLeadDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>เพิ่มลูกค้าเป้าหมายใหม่</DialogTitle>
+            <DialogDescription>
+              กรอกข้อมูลลูกค้าเป้าหมายด้านล่าง ช่องที่มีเครื่องหมาย * จำเป็นต้องกรอก
+            </DialogDescription>
+          </DialogHeader>
+          <AddLeadForm 
+            onSuccess={() => setIsAddLeadDialogOpen(false)} 
+            onCancel={() => setIsAddLeadDialogOpen(false)} 
+          />
+        </DialogContent>
+      </Dialog>
+      
       {/* Add Lead Button */}
       <Button
-        onClick={() => {
-          // ในอนาคตเราจะเพิ่มการเปิด Dialog ที่นี่
-        }}
+        onClick={() => setIsAddLeadDialogOpen(true)}
         variant="default"
         size="lg"
         className="fixed bottom-6 right-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 h-14 w-14 z-20 p-0 bg-gradient-to-r from-cyan-400 to-blue-500"
