@@ -263,7 +263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check permission: Only allow if user is the creator OR has admin/manager role
       const userRoleLevel = roleHierarchy[user.role] || 0;
       const isAdmin = userRoleLevel >= roleHierarchy['Sales Manager']; // Sales Manager or Administrator
-      const isOwner = existingLead.createdBy === user.name;
+      const isOwner = existingLead.createdById === user.id || existingLead.createdBy === user.name;
 
       if (!isAdmin && !isOwner) {
         return res.status(403).json({ 
