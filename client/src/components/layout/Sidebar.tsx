@@ -38,18 +38,19 @@ const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
 export const Sidebar = () => {
   const [location] = useLocation();
   const { currentUser } = useAuth();
+  const { t } = useLanguage();
   const isAdmin = currentUser?.role === "Administrator";
 
   const menuItems = [
-    { icon: <LayoutDashboard size={18} />, label: "Dashboard", href: "/" },
-    { icon: <Users size={18} />, label: "Leads", href: "/leads" },
-    { icon: <UserCog size={18} />, label: "Users", href: "/users" },
+    { icon: <LayoutDashboard size={18} />, label: t('nav.dashboard'), href: "/" },
+    { icon: <Users size={18} />, label: t('nav.leads'), href: "/leads" },
+    { icon: <UserCog size={18} />, label: t('nav.users'), href: "/users" },
   ];
   
   // API Menu items (Admin only)
   const apiMenuItems = isAdmin ? [
-    { icon: <KeyRound size={18} />, label: "API Keys", href: "/api-management" },
-    { icon: <FileText size={18} />, label: "API Docs", href: "/api-documentation" },
+    { icon: <KeyRound size={18} />, label: t('nav.api.management'), href: "/api-management" },
+    { icon: <FileText size={18} />, label: t('nav.api.docs'), href: "/api-documentation" },
   ] : [];
 
   return (
@@ -80,7 +81,7 @@ export const Sidebar = () => {
           <div className="mt-6 mb-2">
             <div className="px-4 py-1">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                API Management
+                {t('nav.api')}
               </h3>
             </div>
           </div>
