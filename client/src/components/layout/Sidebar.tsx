@@ -3,8 +3,11 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Users,
-  UserCog
+  UserCog,
+  KeyRound,
+  FileText
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 type SidebarItemProps = {
   icon: React.ReactNode;
@@ -33,12 +36,20 @@ const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
 
 export const Sidebar = () => {
   const [location] = useLocation();
+  const { currentUser } = useAuth();
+  const isAdmin = currentUser?.role === "Administrator";
 
   const menuItems = [
     { icon: <LayoutDashboard size={18} />, label: "Dashboard", href: "/" },
     { icon: <Users size={18} />, label: "Leads", href: "/leads" },
     { icon: <UserCog size={18} />, label: "Users", href: "/users" },
   ];
+  
+  // API Menu items (Admin only)
+  const apiMenuItems = isAdmin ? [
+    { icon: <KeyRound size={18} />, label: "API Keys", href: "/api-management" },
+    { icon: <FileText size={18} />, label: "API Docs", href: "/api-documentation" },
+  ] : [];
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 p-4 h-screen">
@@ -62,6 +73,29 @@ export const Sidebar = () => {
           />
         ))}
       </nav>
+      
+      {apiMenuItems.length > 0 && (
+        <>
+          <div className="mt-6 mb-2">
+            <div className="px-4 py-1">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                API Management
+              </h3>
+            </div>
+          </div>
+          <nav className="space-y-2">
+            {apiMenuItems.map((item) => (
+              <SidebarItem
+                key={item.href}
+                icon={item.icon}
+                label={item.label}
+                href={item.href}
+                active={location === item.href}
+              />
+            ))}
+          </nav>
+        </>
+      )}
       
       {/* User profile section removed */}
     </aside>

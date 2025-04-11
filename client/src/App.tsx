@@ -7,6 +7,8 @@ import Dashboard from "@/pages/Dashboard";
 import Leads from "@/pages/Leads";
 import Users from "@/pages/Users";
 import Login from "@/pages/Login";
+import ApiManagement from "@/pages/ApiManagement";
+import ApiDocumentation from "@/pages/ApiDocumentation";
 import MainLayout from "@/components/layout/MainLayout";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -26,6 +28,8 @@ function Router() {
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} requiredRoles={["Administrator", "Sales Manager", "Sales Representative"]} />} />
       <Route path="/leads" component={() => <ProtectedRoute component={Leads} requiredRoles={["Administrator", "Sales Manager", "Sales Representative"]} />} />
       <Route path="/users" component={() => <ProtectedRoute component={Users} requiredRoles={["Administrator", "Sales Manager"]} />} />
+      <Route path="/api-management" component={() => <ProtectedRoute component={ApiManagement} requiredRoles={["Administrator"]} />} />
+      <Route path="/api-documentation" component={() => <ProtectedRoute component={ApiDocumentation} requiredRoles={["Administrator"]} />} />
       <Route component={NotFound} />
     </Switch>
   );
