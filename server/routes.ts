@@ -454,6 +454,194 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch metrics" });
     }
   });
+  
+  // API Keys management (Admin only)
+  app.get("/api/api-keys", isAuthenticated, hasRole(['Administrator']), async (req: Request, res: Response) => {
+    try {
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      const apiKeys = await storage.getApiKeys(userId);
+      
+      // Don't send the actual key in the list view for security reasons
+      const safeKeys = apiKeys.map(key => ({
+        ...key,
+        key: `${key.key.substring(0, 8)}...${key.key.substring(key.key.length - 8)}`
+      }));
+      
+      res.json({ apiKeys: safeKeys });
+    } catch (error) {
+      console.error("Error fetching API keys:", error);
+      res.status(500).json({ message: "Failed to fetch API keys" });
+    }
+  });
+  
+  app.post("/api/api-keys", isAuthenticated, hasRole(['Administrator']), async (req: Request, res: Response) => {
+    try {
+      const { name, userId } = req.body;
+      
+      if (!name || !userId) {
+        return res.status(400).json({ message: "Name and userId are required" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const apiKey = await storage.createApiKey({ name, userId });
+      
+      res.status(201).json({ 
+        apiKey,
+        message: "API key created successfully. Please save this key as it won't be shown again."
+      });
+    } catch (error) {
+      console.error("Error creating API key:", error);
+      res.status(500).json({ message: "Failed to create API key" });
+    }
+  });
+  
+  app.delete("/api/api-keys/:id", isAuthenticated, hasRole(['Administrator']), async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid API key ID" });
+      }
+      
+      const apiKey = await storage.getApiKeyById(id);
+      if (!apiKey) {
+        return res.status(404).json({ message: "API key not found" });
+      }
+      
+      const success = await storage.deleteApiKey(id);
+      if (!success) {
+        return res.status(500).json({ message: "Failed to delete API key" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting API key:", error);
+      res.status(500).json({ message: "Failed to delete API key" });
+    }
+  });
+  
+  // External API for Lead Search - authenticated with API key
+  app.get("/api/v1/leads/search", async (req: Request, res: Response) => {
+    try {
+      // Check API key authentication
+      const apiKey = req.headers['x-api-key'] as string;
+      
+      if (!apiKey) {
+        return res.status(401).json({ message: "API key is required" });
+      }
+      
+      const key = await storage.getApiKeyByKey(apiKey);
+      if (!key || !key.isActive) {
+        return res.status(401).json({ message: "Invalid or inactive API key" });
+      }
+      
+      // Update last used timestamp
+      await storage.updateApiKey(key.id, { lastUsed: new Date() });
+      
+      // Get search parameters
+      const searchParams = {
+        name: req.query.name as string | undefined,
+        projectName: req.query.projectName as string | undefined,
+        endUserOrganization: req.query.endUserOrganization as string | undefined,
+        company: req.query.company as string | undefined
+      };
+      
+      // Perform search
+      const leads = await storage.searchLeads(searchParams);
+      
+      res.json({ leads });
+    } catch (error) {
+      console.error("Error searching leads:", error);
+      res.status(500).json({ message: "Failed to search leads", error: (error as Error).message });
+    }
+  });
+  
+  // External API for adding and editing leads - authenticated with API key
+  app.post("/api/v1/leads", async (req: Request, res: Response) => {
+    try {
+      // Check API key authentication
+      const apiKey = req.headers['x-api-key'] as string;
+      
+      if (!apiKey) {
+        return res.status(401).json({ message: "API key is required" });
+      }
+      
+      const key = await storage.getApiKeyByKey(apiKey);
+      if (!key || !key.isActive) {
+        return res.status(401).json({ message: "Invalid or inactive API key" });
+      }
+      
+      // Update last used timestamp
+      await storage.updateApiKey(key.id, { lastUsed: new Date() });
+      
+      // Validate and create the lead
+      const leadData = insertLeadSchema.parse(req.body);
+      
+      // Set the created by information from the API key's user
+      const user = await storage.getUser(key.userId);
+      if (user) {
+        leadData.createdBy = user.name;
+        leadData.createdById = user.id;
+      }
+      
+      const lead = await storage.createLead(leadData);
+      
+      res.status(201).json({ lead });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        res.status(400).json({ message: "Validation error", errors: validationError.details });
+      } else {
+        console.error("Error creating lead:", error);
+        res.status(500).json({ message: "Failed to create lead", error: (error as Error).message });
+      }
+    }
+  });
+  
+  app.patch("/api/v1/leads/:id", async (req: Request, res: Response) => {
+    try {
+      // Check API key authentication
+      const apiKey = req.headers['x-api-key'] as string;
+      
+      if (!apiKey) {
+        return res.status(401).json({ message: "API key is required" });
+      }
+      
+      const key = await storage.getApiKeyByKey(apiKey);
+      if (!key || !key.isActive) {
+        return res.status(401).json({ message: "Invalid or inactive API key" });
+      }
+      
+      // Update last used timestamp
+      await storage.updateApiKey(key.id, { lastUsed: new Date() });
+      
+      // Get the lead ID
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid lead ID" });
+      }
+      
+      // Check if the lead exists
+      const existingLead = await storage.getLeadById(id);
+      if (!existingLead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Update the lead
+      const updatedLead = await storage.updateLead(id, req.body);
+      if (!updatedLead) {
+        return res.status(404).json({ message: "Failed to update lead" });
+      }
+      
+      res.json({ lead: updatedLead });
+    } catch (error) {
+      console.error("Error updating lead:", error);
+      res.status(500).json({ message: "Failed to update lead", error: (error as Error).message });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
