@@ -63,20 +63,7 @@ export const Sidebar = () => {
         ))}
       </nav>
       
-      <div className="mt-auto">        
-        <div className="flex items-center p-2">
-          <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
-            {/* Avatar placeholder */}
-            <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-600">
-              AM
-            </div>
-          </div>
-          <div className="ml-3">
-            <p className="font-medium text-sm">Alex Morgan</p>
-            <p className="text-xs text-gray-500">Administrator</p>
-          </div>
-        </div>
-      </div>
+      {/* User profile section removed */}
     </aside>
   );
 };
