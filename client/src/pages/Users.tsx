@@ -119,7 +119,14 @@ export const Users = () => {
   const editUserMutation = useMutation({
     mutationFn: async (data: { id: number; userData: Partial<UserFormValues> }) => {
       const { confirmPassword, ...userData } = data.userData;
-      return await apiRequest('PATCH', `/api/users/${data.id}`, userData);
+      // Only include password if it's not empty
+      const dataToSend = userData.password ? userData : { 
+        username: userData.username,
+        name: userData.name,
+        role: userData.role
+      };
+      const response = await apiRequest('PATCH', `/api/users/${data.id}`, dataToSend);
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
