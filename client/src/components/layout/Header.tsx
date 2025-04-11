@@ -85,7 +85,7 @@ export const Header = () => {
           </Button>
 
           
-          <div className="hidden md:flex items-center gap-3" data-component-name="Header">
+          <div className="hidden md:flex items-center gap-3">
             <Avatar className="w-8 h-8 mr-2 cursor-pointer" onClick={() => setProfileDialogOpen(true)}>
               {currentUser?.avatar ? (
                 <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
@@ -94,7 +94,7 @@ export const Header = () => {
                 {currentUser?.name?.split(' ').map(n => n[0]).join('') || 'U'}
               </AvatarFallback>
             </Avatar>
-            <span className="text-sm font-medium" data-component-name="Header">{currentUser?.name || 'User'}</span>
+            <span className="text-sm font-medium">{currentUser?.name || 'User'}</span>
             <Button 
               variant="ghost" 
               size="sm" 

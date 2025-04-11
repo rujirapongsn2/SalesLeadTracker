@@ -36,7 +36,8 @@ import {
   Loader2, 
   Filter, 
   SortAsc, 
-  Eye
+  Eye,
+  Plus
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -306,6 +307,18 @@ export const Leads = () => {
         isOpen={isDetailViewOpen}
         onClose={() => setIsDetailViewOpen(false)}
       />
+      
+      {/* Add Lead Button */}
+      <Button
+        onClick={() => {
+          // ในอนาคตเราจะเพิ่มการเปิด Dialog ที่นี่
+        }}
+        variant="default"
+        size="lg"
+        className="fixed bottom-6 right-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 h-14 w-14 z-20 p-0 bg-gradient-to-r from-cyan-400 to-blue-500"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
     </>
   );
 };
