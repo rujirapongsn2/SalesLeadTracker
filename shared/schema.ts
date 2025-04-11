@@ -68,3 +68,32 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// API Keys
+export const apiKeys = sqliteTable("api_keys", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  key: text("key").notNull().unique(),
+  name: text("name").notNull(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  lastUsed: integer("last_used", { mode: "timestamp" }),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+});
+
+export const insertApiKeySchema = createInsertSchema(apiKeys).pick({
+  name: true,
+  userId: true,
+});
+
+export const apiKeySchema = z.object({
+  id: z.number(),
+  key: z.string(),
+  name: z.string(),
+  userId: z.number(),
+  createdAt: z.date(),
+  lastUsed: z.date().optional().nullable(),
+  isActive: z.boolean(),
+});
+
+export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
+export type ApiKey = typeof apiKeys.$inferSelect;

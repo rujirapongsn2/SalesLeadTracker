@@ -4,8 +4,12 @@ import {
   type InsertLead, 
   users,
   type User,
-  type InsertUser
+  type InsertUser,
+  apiKeys,
+  type ApiKey,
+  type InsertApiKey
 } from "@shared/schema";
+import { randomBytes } from "crypto";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { eq, and, or, like } from "drizzle-orm";
 import Database from "better-sqlite3";
@@ -21,6 +25,12 @@ export interface IStorage {
   updateLead(id: number, lead: Partial<InsertLead>): Promise<Lead | undefined>;
   deleteLead(id: number): Promise<boolean>;
   deleteAllLeads(): Promise<void>;
+  searchLeads(searchParams: { 
+    name?: string;
+    projectName?: string;
+    endUserOrganization?: string;
+    company?: string;
+  }): Promise<Lead[]>;
   
   // User methods
   getUsers(): Promise<User[]>;
@@ -30,6 +40,14 @@ export interface IStorage {
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
   searchUsers(query: string): Promise<User[]>;
+  
+  // API Key methods
+  getApiKeys(userId?: number): Promise<ApiKey[]>;
+  getApiKeyById(id: number): Promise<ApiKey | undefined>;
+  getApiKeyByKey(key: string): Promise<ApiKey | undefined>;
+  createApiKey(apiKey: InsertApiKey): Promise<ApiKey>;
+  updateApiKey(id: number, apiKey: Partial<ApiKey>): Promise<ApiKey | undefined>;
+  deleteApiKey(id: number): Promise<boolean>;
 }
 
 export class SQLiteStorage implements IStorage {
@@ -62,6 +80,39 @@ export class SQLiteStorage implements IStorage {
 
   async deleteAllLeads(): Promise<void> {
     await db.delete(leads);
+  }
+  
+  async searchLeads(searchParams: { 
+    name?: string;
+    projectName?: string;
+    endUserOrganization?: string;
+    company?: string;
+  }): Promise<Lead[]> {
+    let query = db.select().from(leads);
+    
+    const conditions = [];
+    
+    if (searchParams.name) {
+      conditions.push(like(leads.name, `%${searchParams.name}%`));
+    }
+    
+    if (searchParams.projectName) {
+      conditions.push(like(leads.projectName, `%${searchParams.projectName}%`));
+    }
+    
+    if (searchParams.endUserOrganization) {
+      conditions.push(like(leads.endUserOrganization, `%${searchParams.endUserOrganization}%`));
+    }
+    
+    if (searchParams.company) {
+      conditions.push(like(leads.company, `%${searchParams.company}%`));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(or(...conditions));
+    }
+    
+    return await query;
   }
 
   // User methods
@@ -145,6 +196,58 @@ export class SQLiteStorage implements IStorage {
         like(users.role, searchTerm)
       )
     );
+  }
+  
+  // API Key methods
+  async getApiKeys(userId?: number): Promise<ApiKey[]> {
+    if (userId) {
+      return await db.select().from(apiKeys).where(eq(apiKeys.userId, userId));
+    }
+    return await db.select().from(apiKeys);
+  }
+  
+  async getApiKeyById(id: number): Promise<ApiKey | undefined> {
+    const result = await db.select().from(apiKeys).where(eq(apiKeys.id, id));
+    return result[0];
+  }
+  
+  async getApiKeyByKey(key: string): Promise<ApiKey | undefined> {
+    const result = await db.select().from(apiKeys).where(eq(apiKeys.key, key));
+    return result[0];
+  }
+  
+  async createApiKey(apiKeyData: InsertApiKey): Promise<ApiKey> {
+    // Generate a random API key
+    const keyBuffer = randomBytes(32);
+    const key = keyBuffer.toString('hex');
+    
+    const result = await db.insert(apiKeys).values({
+      ...apiKeyData,
+      key,
+      isActive: true,
+      createdAt: new Date(),
+    }).returning();
+    
+    return result[0];
+  }
+  
+  async updateApiKey(id: number, apiKeyData: Partial<ApiKey>): Promise<ApiKey | undefined> {
+    const existingKey = await this.getApiKeyById(id);
+    if (!existingKey) {
+      return undefined;
+    }
+    
+    const result = await db.update(apiKeys)
+      .set(apiKeyData)
+      .where(eq(apiKeys.id, id))
+      .returning();
+      
+    return result[0];
+  }
+  
+  async deleteApiKey(id: number): Promise<boolean> {
+    const result = await db.delete(apiKeys).where(eq(apiKeys.id, id));
+    return result !== null;
   }
 }
 
