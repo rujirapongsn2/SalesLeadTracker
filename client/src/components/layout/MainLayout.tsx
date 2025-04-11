@@ -43,14 +43,16 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
             <Plus className="h-6 w-6" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Add New Lead</DialogTitle>
             <DialogDescription>
               Enter the details of the new lead to add them to your system.
             </DialogDescription>
           </DialogHeader>
-          <AddLeadForm />
+          <div className="overflow-y-auto pr-1">
+            <AddLeadForm inDialog={true} />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

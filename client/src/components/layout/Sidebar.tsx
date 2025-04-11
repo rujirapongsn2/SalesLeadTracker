@@ -3,12 +3,8 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Users,
-  CheckSquare,
-  BarChart,
-  Settings,
-  ChevronRight
+  UserCog
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 type SidebarItemProps = {
   icon: React.ReactNode;
@@ -20,8 +16,8 @@ type SidebarItemProps = {
 const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
   return (
     <Link href={href}>
-      <a className={cn(
-        "flex items-center py-3 px-4 rounded-lg transition-all duration-200",
+      <div className={cn(
+        "flex items-center py-3 px-4 rounded-lg transition-all duration-200 cursor-pointer",
         active 
           ? "bg-gradient-to-r from-[rgba(94,252,232,0.1)] to-[rgba(115,110,254,0.1)] border-l-3 border-[#736efe]" 
           : "hover:bg-[rgba(245,245,245,0.8)]"
@@ -30,7 +26,7 @@ const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
           {icon}
         </div>
         <span className="ml-3">{label}</span>
-      </a>
+      </div>
     </Link>
   );
 };
@@ -41,9 +37,7 @@ export const Sidebar = () => {
   const menuItems = [
     { icon: <LayoutDashboard size={18} />, label: "Dashboard", href: "/" },
     { icon: <Users size={18} />, label: "Leads", href: "/leads" },
-    { icon: <CheckSquare size={18} />, label: "Tasks", href: "/tasks" },
-    { icon: <BarChart size={18} />, label: "Reports", href: "/reports" },
-    { icon: <Settings size={18} />, label: "Settings", href: "/settings" },
+    { icon: <UserCog size={18} />, label: "Users", href: "/users" },
   ];
 
   return (
@@ -69,15 +63,7 @@ export const Sidebar = () => {
         ))}
       </nav>
       
-      <div className="mt-auto">
-        <div className="rounded-xl bg-gradient-to-r from-[rgba(67,233,123,0.1)] to-[rgba(56,249,215,0.1)] p-4 mb-4">
-          <p className="font-medium text-sm mb-2">Upgrade to Pro</p>
-          <p className="text-xs mb-3">Get advanced features and analytics</p>
-          <Button variant="outline" size="sm" className="w-full bg-white">
-            Learn More <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-        
+      <div className="mt-auto">        
         <div className="flex items-center p-2">
           <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
             {/* Avatar placeholder */}

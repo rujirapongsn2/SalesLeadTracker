@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Lead } from "@shared/schema";
 import { Input } from "@/components/ui/input";
@@ -35,19 +35,53 @@ import {
   MoreVertical, 
   Loader2, 
   Filter, 
-  SortAsc 
+  SortAsc, 
+  Eye
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { LeadDetailView } from "@/components/leads/LeadDetailView";
+import { DateRangePicker, DateRange } from "@/components/ui/date-range-picker";
 
 export const Leads = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sourceFilter, setSourceFilter] = useState("All");
+  const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: undefined,
+    to: undefined
+  });
+  const [dateQueryParams, setDateQueryParams] = useState("");
   const { toast } = useToast();
 
-  const { data, isLoading } = useQuery<{ leads: Lead[] }>({
-    queryKey: ['/api/leads'],
+  // Format date for API query parameters
+  const formatDateForQuery = (date: Date | undefined) => {
+    if (!date) return undefined;
+    return date.toISOString();
+  };
+
+  // Update query params when date range changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (dateRange.from) {
+      params.append('fromDate', formatDateForQuery(dateRange.from) || '');
+    }
+    if (dateRange.to) {
+      params.append('toDate', formatDateForQuery(dateRange.to) || '');
+    }
+    setDateQueryParams(params.toString());
+  }, [dateRange]);
+
+  const { data, isLoading, error } = useQuery<{ leads: Lead[] }>({
+    queryKey: ['/api/leads', dateQueryParams],
+    queryFn: async () => {
+      const url = dateQueryParams ? `/api/leads?${dateQueryParams}` : '/api/leads';
+      const response = await apiRequest('GET', url);
+      const data = await response.json();
+      return data;
+    }
   });
 
   if (isLoading) {
@@ -122,14 +156,22 @@ export const Leads = () => {
           <CardTitle>All Leads</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4 mb-6 items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input
+                type="search"
                 placeholder="Search leads..."
-                className="pl-10"
+                className="pl-8"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <div className="w-72">
+              <DateRangePicker 
+                date={dateRange} 
+                setDate={setDateRange} 
               />
             </div>
             <div className="flex gap-2">
@@ -177,9 +219,9 @@ export const Leads = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Source</TableHead>
+                  <TableHead>Project Name</TableHead>
+                  <TableHead>End User</TableHead>
+                  <TableHead>Partner Company</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -194,13 +236,23 @@ export const Leads = () => {
                 ) : (
                   filteredLeads.map((lead) => (
                     <TableRow key={lead.id}>
-                      <TableCell className="font-medium">{lead.name}</TableCell>
-                      <TableCell>{lead.company}</TableCell>
-                      <TableCell>
-                        <div>{lead.email}</div>
-                        <div className="text-sm text-gray-500">{lead.phone}</div>
+                      <TableCell className="font-medium">
+                        <button 
+                          onClick={() => {
+                            setSelectedLeadId(lead.id);
+                            setIsDetailViewOpen(true);
+                          }}
+                          className="text-left hover:text-primary hover:underline focus:outline-none focus:text-primary"
+                        >
+                          {lead.name}
+                        </button>
                       </TableCell>
-                      <TableCell>{lead.source}</TableCell>
+                      <TableCell>{lead.projectName || 'N/A'}</TableCell>
+                      <TableCell>
+                        <div>{lead.endUserOrganization || 'N/A'}</div>
+                        <div className="text-sm text-gray-500 truncate max-w-[200px]">{lead.endUserContact || 'N/A'}</div>
+                      </TableCell>
+                      <TableCell>{lead.company}</TableCell>
                       <TableCell>
                         <span className={getStatusBadgeClasses(lead.status)}>
                           {lead.status}
@@ -214,6 +266,13 @@ export const Leads = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => {
+                              setSelectedLeadId(lead.id);
+                              setIsDetailViewOpen(true);
+                            }}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
                             <DropdownMenuItem onSelect={() => handleStatusChange(lead.id, "New")}>
                               Mark as New
                             </DropdownMenuItem>
@@ -240,6 +299,13 @@ export const Leads = () => {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Lead Detail View Dialog */}
+      <LeadDetailView
+        leadId={selectedLeadId}
+        isOpen={isDetailViewOpen}
+        onClose={() => setIsDetailViewOpen(false)}
+      />
     </>
   );
 };

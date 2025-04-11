@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowUpRight, ArrowDownRight, UserPlus, TrendingUp, Loader2, LoaderPinwheel, CheckCircle } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, UserPlus, TrendingUp, Loader2, LoaderPinwheel, CheckCircle, DollarSign } from "lucide-react";
 
 type StatCardProps = {
   title: string;
@@ -10,13 +10,19 @@ type StatCardProps = {
     value: number;
     isPositive: boolean;
   };
-  gradient: "primary" | "secondary";
+  gradient?: "primary" | "secondary" | "tertiary";
+};
+
+type StatCardsProps = {
+  dateQueryParams?: string;
 };
 
 const StatCard = ({ title, value, icon, change, gradient }: StatCardProps) => {
   const gradientClass = gradient === "primary" 
     ? "bg-gradient-to-r from-[#5efce8] to-[#736efe]" 
-    : "bg-gradient-to-r from-[#43E97B] to-[#38F9D7]";
+    : gradient === "secondary" 
+    ? "bg-gradient-to-r from-[#43E97B] to-[#38F9D7]" 
+    : "bg-gradient-to-r from-[#FF69B4] to-[#FFC67D]";
 
   return (
     <Card className="bg-white relative overflow-hidden">
@@ -45,56 +51,77 @@ const StatCard = ({ title, value, icon, change, gradient }: StatCardProps) => {
   );
 };
 
-export const StatCards = () => {
+export const StatCards = ({ dateQueryParams = '' }: StatCardsProps) => {
   const { data, isLoading } = useQuery({
-    queryKey: ['/api/metrics'],
+    queryKey: ['/api/metrics', dateQueryParams],
+    queryFn: async () => {
+      const url = dateQueryParams ? `/api/metrics?${dateQueryParams}` : '/api/metrics';
+      const response = await fetch(url);
+      const data = await response.json();
+      return data;
+    }
   });
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="bg-white">
-            <CardContent className="p-4 flex items-center justify-center h-24">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Card className="bg-white h-full">
+        <CardContent className="p-6">
+          <h2 className="text-xl font-semibold mb-6">Sales Metrics</h2>
+          <div className="space-y-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex items-center justify-center h-24">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <StatCard
-        title="New Leads"
-        value={data?.metrics?.new || 0}
-        icon={<UserPlus className="h-5 w-5 text-white" />}
-        change={{ value: 12, isPositive: true }}
-        gradient="primary"
-      />
-      <StatCard
-        title="Conversion Rate"
-        value={`${data?.metrics?.conversionRate || 0}%`}
-        icon={<TrendingUp className="h-5 w-5 text-white" />}
-        change={{ value: 3, isPositive: false }}
-        gradient="secondary"
-      />
-      <StatCard
-        title="In Progress"
-        value={data?.metrics?.inProgress || 0}
-        icon={<LoaderPinwheel className="h-5 w-5 text-white" />}
-        change={{ value: 8, isPositive: true }}
-        gradient="primary"
-      />
-      <StatCard
-        title="Closed Deals"
-        value={data?.metrics?.converted || 0}
-        icon={<CheckCircle className="h-5 w-5 text-white" />}
-        change={{ value: 17, isPositive: true }}
-        gradient="secondary"
-      />
-    </div>
+    <Card className="bg-white h-full">
+      <CardContent className="p-6">
+        <h2 className="text-xl font-semibold mb-6">Sales Metrics</h2>
+        <div className="space-y-4">
+          <StatCard
+            title="New Leads"
+            value={data?.metrics?.new || 0}
+            icon={<UserPlus className="h-5 w-5 text-white" />}
+            change={{ value: 12, isPositive: true }}
+            gradient="primary"
+          />
+          <StatCard
+            title="Conversion Rate"
+            value={`${data?.metrics?.conversionRate || 0}%`}
+            icon={<TrendingUp className="h-5 w-5 text-white" />}
+            change={{ value: 3, isPositive: false }}
+            gradient="secondary"
+          />
+          <StatCard
+            title="In Progress"
+            value={data?.metrics?.inProgress || 0}
+            icon={<LoaderPinwheel className="h-5 w-5 text-white" />}
+            change={{ value: 8, isPositive: true }}
+            gradient="primary"
+          />
+          <StatCard
+            title="Closed Deals"
+            value={data?.metrics?.converted || 0}
+            icon={<CheckCircle className="h-5 w-5 text-white" />}
+            change={{ value: 17, isPositive: true }}
+            gradient="secondary"
+          />
+          <StatCard
+            title="Total Budget"
+            value={`฿${(data?.metrics?.totalBudget || 0).toLocaleString()}`}
+            icon={<DollarSign className="h-5 w-5 text-white" />}
+            change={{ value: 5, isPositive: true }}
+            gradient="primary"
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

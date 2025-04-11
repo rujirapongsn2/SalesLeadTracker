@@ -10,7 +10,16 @@ export const leads = pgTable("leads", {
   phone: text("phone").notNull(),
   source: text("source").notNull(),
   status: text("status").notNull().default("new"),
+  product: text("product").notNull().default(""),
+  endUserContact: text("end_user_contact").notNull().default(""),
+  endUserOrganization: text("end_user_organization").notNull().default(""),
+  projectName: text("project_name").notNull().default(""),
+  budget: text("budget").notNull().default(""),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at"),
+  createdBy: text("created_by").default("Admin User"),
+  partnerContact: text("partner_contact").notNull().default(""),
+  productRegister: text("product_register").notNull().default(""),
 });
 
 export const insertLeadSchema = createInsertSchema(leads).omit({
@@ -24,6 +33,7 @@ export const leadSourceEnum = z.enum([
   "Social Media",
   "Event",
   "Other",
+  "Other (Custom)",
 ]);
 
 export const leadStatusEnum = z.enum([
@@ -53,6 +63,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
   name: true,
   role: true,
+  avatar: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

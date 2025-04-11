@@ -22,13 +22,15 @@ import {
   ChevronRight, 
   MoreVertical, 
   Filter,
-  SortDesc
+  SortDesc,
+  Eye
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LeadDetailView } from "@/components/leads/LeadDetailView";
 
 type BadgeColor = {
   bg: string;
@@ -54,11 +56,18 @@ const SOURCE_COLORS: Record<string, BadgeColor> = {
 export const LeadTable = () => {
   const [currentTab, setCurrentTab] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
   const pageSize = 4;
   const { toast } = useToast();
   
-  const { data, isLoading } = useQuery<{ leads: Lead[] }>({
+  const { data, isLoading, error } = useQuery<{ leads: Lead[] }>({
     queryKey: ['/api/leads'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/leads');
+      const data = await response.json();
+      return data;
+    }
   });
 
   if (isLoading) {
@@ -146,18 +155,15 @@ export const LeadTable = () => {
 
   return (
     <div className="bg-white rounded-md shadow-sm p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Recent Leads</h2>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
-          <Button variant="outline" size="sm">
-            <SortDesc className="h-4 w-4 mr-2" />
-            Sort
-          </Button>
-        </div>
+      <div className="mb-6 flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Recent Leads</h3>
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-auto">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="All">All</TabsTrigger>
+            <TabsTrigger value="New">New</TabsTrigger>
+            <TabsTrigger value="Qualified">Qualified</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       <Tabs value={currentTab} onValueChange={setCurrentTab} className="mb-6">
@@ -194,10 +200,10 @@ export const LeadTable = () => {
           <TableHeader>
             <TableRow className="border-b hover:bg-transparent">
               <TableHead className="font-medium text-gray-500">Name</TableHead>
-              <TableHead className="font-medium text-gray-500">Contact</TableHead>
-              <TableHead className="font-medium text-gray-500">Source</TableHead>
+              <TableHead className="font-medium text-gray-500">Project Name</TableHead>
+              <TableHead className="font-medium text-gray-500">End User</TableHead>
+              <TableHead className="font-medium text-gray-500">Partner Company</TableHead>
               <TableHead className="font-medium text-gray-500">Status</TableHead>
-              <TableHead className="font-medium text-gray-500">Added</TableHead>
               <TableHead className="font-medium text-gray-500"></TableHead>
             </TableRow>
           </TableHeader>
@@ -205,32 +211,38 @@ export const LeadTable = () => {
             {paginatedLeads.map((lead) => (
               <TableRow key={lead.id} className="border-b">
                 <TableCell>
-                  <div className="flex items-center">
-                    <div className={`w-8 h-8 ${getRandomColor(lead.name)} rounded-full flex items-center justify-center mr-3`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`flex items-center justify-center w-10 h-10 rounded-full ${getRandomColor(lead.name)}`}>
                       <span className="font-medium text-sm">{getNameInitials(lead.name)}</span>
                     </div>
                     <div>
-                      <p className="font-medium">{lead.name}</p>
+                      <button 
+                        onClick={() => {
+                          setSelectedLeadId(lead.id);
+                          setIsDetailViewOpen(true);
+                        }}
+                        className="text-left hover:text-primary hover:underline focus:outline-none focus:text-primary"
+                      >
+                        <p className="font-medium">{lead.name}</p>
+                      </button>
                       <p className="text-sm text-gray-500">{lead.company}</p>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <p className="text-sm">{lead.email}</p>
-                  <p className="text-sm text-gray-500">{lead.phone}</p>
+                  <p className="text-sm">{lead.projectName || 'N/A'}</p>
                 </TableCell>
                 <TableCell>
-                  <span className={`text-sm px-3 py-1 ${SOURCE_COLORS[lead.source]?.bg} ${SOURCE_COLORS[lead.source]?.text} rounded-full`}>
-                    {lead.source}
-                  </span>
+                  <p className="text-sm">{lead.endUserOrganization || 'N/A'}</p>
+                  <p className="text-sm text-gray-500 truncate max-w-[150px]">{lead.endUserContact || 'N/A'}</p>
+                </TableCell>
+                <TableCell>
+                  <p className="text-sm">{lead.company}</p>
                 </TableCell>
                 <TableCell>
                   <span className={`status-badge ${STATUS_COLORS[lead.status]?.bg} ${STATUS_COLORS[lead.status]?.text}`}>
                     {lead.status}
                   </span>
-                </TableCell>
-                <TableCell className="text-sm text-gray-500">
-                  {lead.createdAt ? getRelativeTime(lead.createdAt) : 'N/A'}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
@@ -240,6 +252,13 @@ export const LeadTable = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onSelect={() => {
+                        setSelectedLeadId(lead.id);
+                        setIsDetailViewOpen(true);
+                      }}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Details
+                      </DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => handleStatusChange(lead.id, "New")}>
                         Mark as New
                       </DropdownMenuItem>
@@ -302,6 +321,13 @@ export const LeadTable = () => {
           </Button>
         </div>
       </div>
+      
+      {/* Lead Detail View Dialog */}
+      <LeadDetailView
+        leadId={selectedLeadId}
+        isOpen={isDetailViewOpen}
+        onClose={() => setIsDetailViewOpen(false)}
+      />
     </div>
   );
 };
