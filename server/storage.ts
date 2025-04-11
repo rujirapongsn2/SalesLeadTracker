@@ -20,6 +20,7 @@ export interface IStorage {
   createLead(lead: InsertLead): Promise<Lead>;
   updateLead(id: number, lead: Partial<InsertLead>): Promise<Lead | undefined>;
   deleteLead(id: number): Promise<boolean>;
+  deleteAllLeads(): Promise<void>;
   
   // User methods
   getUsers(): Promise<User[]>;
@@ -57,6 +58,10 @@ export class SQLiteStorage implements IStorage {
   async deleteLead(id: number): Promise<boolean> {
     const result = await db.delete(leads).where(eq(leads.id, id));
     return result !== null;
+  }
+
+  async deleteAllLeads(): Promise<void> {
+    await db.delete(leads);
   }
 
   // User methods

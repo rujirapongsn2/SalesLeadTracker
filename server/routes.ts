@@ -1,13 +1,119 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLeadSchema, leadStatusEnum, leadSourceEnum, insertUserSchema } from "@shared/schema";
+import { insertLeadSchema, leadStatusEnum, leadSourceEnum, insertUserSchema, User } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { z } from "zod";
+
+// Define login schema
+const loginSchema = z.object({
+  username: z.string(),
+  password: z.string()
+});
+
+// Role hierarchy for permission checking
+const roleHierarchy: Record<string, number> = {
+  'Administrator': 3,
+  'Sales Manager': 2,
+  'Sales Representative': 1,
+};
+
+// Middleware to check if user is authenticated
+const isAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
+  // In a real app, this would validate a JWT token or session
+  // For this example, we'll use custom headers for authentication
+  const userId = req.headers['x-user-id'];
+  const userRole = req.headers['x-user-role'];
+  const userName = req.headers['x-user-name'];
+  
+  if (!userId || !userRole || !userName) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+  
+  try {
+    // Add user info to request object for use in route handlers
+    (req as any).user = {
+      id: Number(userId),
+      role: userRole as string,
+      name: userName as string
+    };
+    
+    // In a real app, we would validate the user against the database
+    // For this example, we'll just use the headers directly
+    next();
+  } catch (error) {
+    console.error("Authentication error:", error);
+    res.status(401).json({ message: "Authentication failed" });
+  }
+};
+
+// Middleware to check if user has required role
+const hasRole = (requiredRoles: string[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user as User;
+    
+    if (!user) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    const userRoleLevel = roleHierarchy[user.role] || 0;
+    
+    // Check if user's role level is sufficient for any of the required roles
+    const hasPermission = requiredRoles.some(role => {
+      const requiredLevel = roleHierarchy[role] || 0;
+      return userRoleLevel >= requiredLevel;
+    });
+    
+    if (!hasPermission) {
+      return res.status(403).json({ message: "Insufficient permissions" });
+    }
+    
+    next();
+  };
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Login endpoint
+  app.post("/api/login", async (req: Request, res: Response) => {
+    try {
+      const { username, password } = loginSchema.parse(req.body);
+      
+      // Check if user exists
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user || user.password !== password) {
+        return res.status(401).json({ 
+          success: false, 
+          message: "Invalid username or password" 
+        });
+      }
+      
+      // In a real app, you would generate and return a JWT token here
+      // For simplicity, we'll just return the user object (excluding password)
+      const { password: _, ...userWithoutPassword } = user;
+      
+      res.json({ 
+        success: true, 
+        user: userWithoutPassword,
+        message: "Login successful"
+      });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ 
+          success: false, 
+          message: validationError.message 
+        });
+      }
+      res.status(500).json({ 
+        success: false, 
+        message: "Login failed" 
+      });
+    }
+  });
   // API routes for leads
-  app.get("/api/leads", async (req: Request, res: Response) => {
+  app.get("/api/leads", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { fromDate, toDate } = req.query;
       const leads = await storage.getLeads();
@@ -36,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/leads/:id", async (req: Request, res: Response) => {
+  app.get("/api/leads/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -54,21 +160,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/leads", async (req: Request, res: Response) => {
+  app.post("/api/leads", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      // Get user info from authentication middleware
+      const user = (req as any).user;
+      
+      // Parse the request body with Zod schema
       const leadData = insertLeadSchema.parse(req.body);
-      const lead = await storage.createLead(leadData);
+      
+      // Add timestamps and creator info
+      const now = Date.now();
+      const enrichedLeadData = {
+        ...leadData,
+        createdAt: now,
+        updatedAt: now,
+        createdBy: user?.name || 'Unknown User'
+      };
+      
+      // Create the lead in the database
+      const lead = await storage.createLead(enrichedLeadData);
       res.status(201).json({ lead });
     } catch (error) {
       if (error instanceof ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
+      console.error("Error creating lead:", error);
       res.status(500).json({ message: "Failed to create lead" });
     }
   });
 
-  app.patch("/api/leads/:id", async (req: Request, res: Response) => {
+  app.patch("/api/leads/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -95,7 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/leads/:id", async (req: Request, res: Response) => {
+  app.delete("/api/leads/:id", isAuthenticated, hasRole(['Administrator', 'Sales Manager']), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -113,8 +235,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/leads", isAuthenticated, hasRole(['Administrator']), async (req: Request, res: Response) => {
+    try {
+      await storage.deleteAllLeads();
+      res.status(200).json({ message: "All leads deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete all leads" });
+    }
+  });
+
+  // API route for metrics
+  app.get("/api/metrics", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { fromDate, toDate } = req.query;
+      const leads = await storage.getLeads();
+      
+      // Filter leads by date range if provided
+      let filteredLeads = leads;
+      if (fromDate || toDate) {
+        filteredLeads = leads.filter(lead => {
+          const leadDate = new Date(lead.createdAt || 0);
+          
+          if (fromDate && toDate) {
+            return leadDate >= new Date(fromDate as string) && 
+                   leadDate <= new Date(toDate as string);
+          } else if (fromDate) {
+            return leadDate >= new Date(fromDate as string);
+          } else if (toDate) {
+            return leadDate <= new Date(toDate as string);
+          }
+          return true;
+        });
+      }
+      
+      // Calculate status distribution
+      const statusCounts: Record<string, number> = {};
+      const sourceCounts: Record<string, number> = {};
+      
+      filteredLeads.forEach(lead => {
+        // Count by status
+        if (lead.status) {
+          statusCounts[lead.status] = (statusCounts[lead.status] || 0) + 1;
+        }
+        
+        // Count by source
+        if (lead.source) {
+          sourceCounts[lead.source] = (sourceCounts[lead.source] || 0) + 1;
+        }
+      });
+      
+      const totalLeads = filteredLeads.length;
+      
+      // Format status distribution for response
+      const statusDistribution = Object.keys(statusCounts).map(status => ({
+        status,
+        count: statusCounts[status],
+        percentage: totalLeads > 0 ? Math.round((statusCounts[status] / totalLeads) * 100) : 0
+      }));
+      
+      // Format source distribution for response
+      const sourceDistribution = Object.keys(sourceCounts).map(source => ({
+        source,
+        count: sourceCounts[source],
+        percentage: totalLeads > 0 ? Math.round((sourceCounts[source] / totalLeads) * 100) : 0
+      }));
+      
+      res.json({
+        totalLeads,
+        statusDistribution,
+        sourceDistribution
+      });
+    } catch (error) {
+      console.error("Error fetching metrics:", error);
+      res.status(500).json({ message: "Failed to fetch metrics" });
+    }
+  });
+
   // API endpoints for user management
-  app.get("/api/users", async (_req: Request, res: Response) => {
+  app.get("/api/users", isAuthenticated, hasRole(['Administrator', 'Sales Manager']), async (_req: Request, res: Response) => {
     try {
       // Get all users from the storage using the proper method
       const users = await storage.getUsers();
@@ -132,7 +330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/users/:id", async (req: Request, res: Response) => {
+  app.get("/api/users/:id", isAuthenticated, hasRole(['Administrator', 'Sales Manager']), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -152,7 +350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/users", async (req: Request, res: Response) => {
+  app.post("/api/users", isAuthenticated, hasRole(['Administrator']), async (req: Request, res: Response) => {
     try {
       const userData = insertUserSchema.parse(req.body);
       
@@ -176,33 +374,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/users/:id", async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
-
-      // Check if user exists
-      const user = await storage.getUser(id);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // Use the proper deleteUser method
-      const success = await storage.deleteUser(id);
-      if (!success) {
-        return res.status(500).json({ message: "Failed to delete user" });
-      }
-
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete user" });
-    }
-  });
-
   // API endpoints for lead metrics
-  app.get("/api/metrics", async (req: Request, res: Response) => {
+  app.get("/api/metrics", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const { fromDate, toDate } = req.query;
       const allLeads = await storage.getLeads();
@@ -263,7 +436,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : 0
       }));
 
+      // Send data directly in the format expected by the component
       res.json({
+        totalLeads,
+        statusDistribution,
+        sourceDistribution,
+        // Include metrics for other components that might need it
         metrics: {
           total: totalLeads,
           new: newLeads,
@@ -272,9 +450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           converted: convertedLeads,
           conversionRate,
           totalBudget
-        },
-        sourceDistribution,
-        statusDistribution
+        }
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch metrics" });

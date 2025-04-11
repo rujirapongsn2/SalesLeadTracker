@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import StatCards from "@/components/dashboard/StatCards";
 import LeadTable from "@/components/dashboard/LeadTable";
 import LeadStatusDistribution from "@/components/dashboard/LeadStatusDistribution";
-import AddLeadForm from "@/components/dashboard/AddLeadForm";
 import { DateRangePicker, DateRange } from '@/components/ui/date-range-picker';
 
 export const Dashboard = () => {
@@ -40,7 +39,7 @@ export const Dashboard = () => {
           />
         </div>
       </div>
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
         {/* First column: Metrics */}
         <div className="xl:col-span-1">
           <StatCards dateQueryParams={getDateQueryParams()} />
@@ -49,11 +48,6 @@ export const Dashboard = () => {
         {/* Second column: Lead Status Distribution */}
         <div className="xl:col-span-1">
           <LeadStatusDistribution dateQueryParams={getDateQueryParams()} />
-        </div>
-        
-        {/* Third column: Add Lead Form */}
-        <div className="xl:col-span-1">
-          <AddLeadForm />
         </div>
       </div>
 

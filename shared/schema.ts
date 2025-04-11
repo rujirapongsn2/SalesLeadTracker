@@ -1,22 +1,22 @@
-import { pgTable, text, serial, timestamp, varchar } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer, blob } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const leads = pgTable("leads", {
-  id: serial("id").primaryKey(),
+export const leads = sqliteTable("leads", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   company: text("company").notNull(),
   email: text("email").notNull(),
   phone: text("phone").notNull(),
   source: text("source").notNull(),
-  status: text("status").notNull().default("new"),
+  status: text("status").notNull().default("New"),
   product: text("product").notNull().default(""),
   endUserContact: text("end_user_contact").notNull().default(""),
   endUserOrganization: text("end_user_organization").notNull().default(""),
   projectName: text("project_name").notNull().default(""),
   budget: text("budget").notNull().default(""),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at"),
+  createdAt: integer("created_at"),
+  updatedAt: integer("updated_at"),
   createdBy: text("created_by").default("Admin User"),
   partnerContact: text("partner_contact").notNull().default(""),
   productRegister: text("product_register").notNull().default(""),
@@ -24,7 +24,6 @@ export const leads = pgTable("leads", {
 
 export const insertLeadSchema = createInsertSchema(leads).omit({
   id: true,
-  createdAt: true,
 });
 
 export const leadSourceEnum = z.enum([
@@ -49,8 +48,8 @@ export type Lead = typeof leads.$inferSelect;
 export type LeadSource = z.infer<typeof leadSourceEnum>;
 export type LeadStatus = z.infer<typeof leadStatusEnum>;
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),

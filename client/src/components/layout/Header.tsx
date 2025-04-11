@@ -6,17 +6,40 @@ import {
   Search, 
   Bell, 
   Settings,
-  X
+  X,
+  LogOut,
+  User,
+  UserCircle,
+  UserCog
 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
 import Sidebar from "./Sidebar";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "wouter";
+import { UserProfileDialog } from "../user/UserProfileDialog";
 
 export const Header = () => {
   const [searchValue, setSearchValue] = useState("");
+  const { currentUser, logout } = useAuth();
+  const [, setLocation] = useLocation();
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   return (
     <header className="bg-white border-b border-gray-200 py-4 px-6">
@@ -60,17 +83,39 @@ export const Header = () => {
             <Bell className="h-5 w-5" />
             <span className="absolute -top-1 -right-1 bg-red-500 rounded-full w-4 h-4 text-xs text-white flex items-center justify-center">3</span>
           </Button>
-          <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700">
-            <Settings className="h-5 w-5" />
-          </Button>
-          <div className="hidden md:flex items-center">
-            <div className="w-8 h-8 bg-gray-200 rounded-full overflow-hidden mr-2 flex items-center justify-center text-xs font-medium">
-              AM
-            </div>
-            <span className="text-sm font-medium">Alex Morgan</span>
+
+          
+          <div className="hidden md:flex items-center gap-3" data-component-name="Header">
+            <Avatar className="w-8 h-8 mr-2 cursor-pointer" onClick={() => setProfileDialogOpen(true)}>
+              {currentUser?.avatar ? (
+                <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
+              ) : null}
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
+                {currentUser?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium" data-component-name="Header">{currentUser?.name || 'User'}</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-500 hover:text-gray-700 flex items-center gap-1"
+              onClick={() => {
+                logout();
+                setLocation('/login');
+              }}
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="text-xs">Logout</span>
+            </Button>
           </div>
         </div>
       </div>
+      
+      {/* User Profile Dialog */}
+      <UserProfileDialog 
+        open={profileDialogOpen} 
+        onOpenChange={setProfileDialogOpen} 
+      />
     </header>
   );
 };

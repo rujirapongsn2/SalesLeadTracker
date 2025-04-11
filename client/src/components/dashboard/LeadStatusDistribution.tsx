@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { apiRequest } from "@/lib/queryClient";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -11,13 +12,20 @@ type LeadStatusDistributionProps = {
 };
 
 export const LeadStatusDistribution = ({ dateQueryParams = '' }: LeadStatusDistributionProps) => {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['/api/metrics', dateQueryParams],
     queryFn: async () => {
       const url = dateQueryParams ? `/api/metrics?${dateQueryParams}` : '/api/metrics';
-      const response = await fetch(url);
-      const data = await response.json();
-      return data;
+      console.log('Fetching metrics from:', url);
+      try {
+        const response = await apiRequest('GET', url);
+        const data = await response.json();
+        console.log('Metrics data received:', data);
+        return data;
+      } catch (err) {
+        console.error('Error fetching metrics:', err);
+        throw err;
+      }
     }
   });
 
@@ -28,6 +36,47 @@ export const LeadStatusDistribution = ({ dateQueryParams = '' }: LeadStatusDistr
           <h2 className="text-xl font-semibold mb-6">Lead Status Distribution</h2>
           <div className="flex items-center justify-center h-64">
             <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  if (error) {
+    console.error('Error in LeadStatusDistribution:', error);
+    return (
+      <Card className="bg-white h-full">
+        <CardContent className="p-6">
+          <h2 className="text-xl font-semibold mb-6">Lead Status Distribution</h2>
+          <div className="flex items-center justify-center h-64 text-red-500">
+            Error loading data. Please check console for details.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Log data for debugging
+  console.log('Full API response:', data);
+  
+  // Extract data from API response
+  const statusDistribution = data?.statusDistribution || [];
+  const sourceDistribution = data?.sourceDistribution || [];
+  
+  console.log('Status distribution:', statusDistribution);
+  console.log('Source distribution:', sourceDistribution);
+  
+  // Check if we have data to display
+  const hasStatusData = statusDistribution.length > 0;
+  const hasSourceData = sourceDistribution.length > 0;
+  
+  if (!hasStatusData && !hasSourceData) {
+    return (
+      <Card className="bg-white h-full">
+        <CardContent className="p-6">
+          <h2 className="text-xl font-semibold mb-6">Lead Status Distribution</h2>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            No lead data available. Add some leads to see distribution.
           </div>
         </CardContent>
       </Card>
@@ -50,8 +99,7 @@ export const LeadStatusDistribution = ({ dateQueryParams = '' }: LeadStatusDistr
     "Other": "rgba(107, 114, 128, 0.8)"
   };
 
-  const statusDistribution = data?.statusDistribution || [];
-  const sourceDistribution = data?.sourceDistribution || [];
+  // Data is already extracted above
 
   return (
     <Card className="bg-white h-full">
