@@ -123,6 +123,11 @@ export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps)
     mutationFn: async (updatedData: UpdateLeadFormValues) => {
       if (!leadId) throw new Error("Lead ID is required");
       const response = await apiRequest('PATCH', `/api/leads/${leadId}`, updatedData);
+      // If response status is 403 (Forbidden), extract the message from the response
+      if (response.status === 403) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Permission denied");
+      }
       return response;
     },
     onSuccess: () => {
@@ -134,11 +139,20 @@ export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps)
       });
       setIsEditing(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error updating lead:", error);
+      
+      // Check if the error is a permission error
+      const errorMessage = error.message || "Failed to update lead";
+      const isPermissionError = errorMessage.includes("permission") || 
+                               errorMessage.includes("Permission") ||
+                               errorMessage.includes("creator") ||
+                               errorMessage.includes("Administrator") ||
+                               errorMessage.includes("Sales Manager");
+      
       toast({
-        title: "Error",
-        description: "Failed to update lead",
+        title: isPermissionError ? "Permission Denied" : "Error",
+        description: errorMessage,
         variant: "destructive",
       });
     },
