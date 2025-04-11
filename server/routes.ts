@@ -174,7 +174,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...leadData,
         createdAt: now,
         updatedAt: now,
-        createdBy: user?.name || 'Unknown User'
+        createdBy: user?.name || 'Unknown User',
+        createdById: user?.id || 0
       };
       
       // Create the lead in the database
@@ -209,7 +210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check permission: Only allow if user is the creator OR has admin/manager role
       const userRoleLevel = roleHierarchy[user.role] || 0;
       const isAdmin = userRoleLevel >= roleHierarchy['Sales Manager']; // Sales Manager or Administrator
-      const isOwner = existingLead.createdBy === user.name;
+      const isOwner = existingLead.createdById === user.id || existingLead.createdBy === user.name;
 
       if (!isAdmin && !isOwner) {
         return res.status(403).json({ 
