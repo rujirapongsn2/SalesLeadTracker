@@ -289,18 +289,16 @@ export const ApiManagement = () => {
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => {
-                                setDeleteKeyId(apiKey.id);
-                                setIsDeleteDialogOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              setDeleteKeyId(apiKey.id);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
