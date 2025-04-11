@@ -294,71 +294,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // API route for metrics
-  app.get("/api/metrics", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const { fromDate, toDate } = req.query;
-      const leads = await storage.getLeads();
-      
-      // Filter leads by date range if provided
-      let filteredLeads = leads;
-      if (fromDate || toDate) {
-        filteredLeads = leads.filter(lead => {
-          const leadDate = new Date(lead.createdAt || 0);
-          
-          if (fromDate && toDate) {
-            return leadDate >= new Date(fromDate as string) && 
-                   leadDate <= new Date(toDate as string);
-          } else if (fromDate) {
-            return leadDate >= new Date(fromDate as string);
-          } else if (toDate) {
-            return leadDate <= new Date(toDate as string);
-          }
-          return true;
-        });
-      }
-      
-      // Calculate status distribution
-      const statusCounts: Record<string, number> = {};
-      const sourceCounts: Record<string, number> = {};
-      
-      filteredLeads.forEach(lead => {
-        // Count by status
-        if (lead.status) {
-          statusCounts[lead.status] = (statusCounts[lead.status] || 0) + 1;
-        }
-        
-        // Count by source
-        if (lead.source) {
-          sourceCounts[lead.source] = (sourceCounts[lead.source] || 0) + 1;
-        }
-      });
-      
-      const totalLeads = filteredLeads.length;
-      
-      // Format status distribution for response
-      const statusDistribution = Object.keys(statusCounts).map(status => ({
-        status,
-        count: statusCounts[status],
-        percentage: totalLeads > 0 ? Math.round((statusCounts[status] / totalLeads) * 100) : 0
-      }));
-      
-      // Format source distribution for response
-      const sourceDistribution = Object.keys(sourceCounts).map(source => ({
-        source,
-        count: sourceCounts[source],
-        percentage: totalLeads > 0 ? Math.round((sourceCounts[source] / totalLeads) * 100) : 0
-      }));
-      
-      res.json({
-        totalLeads,
-        statusDistribution,
-        sourceDistribution
-      });
-    } catch (error) {
-      console.error("Error fetching metrics:", error);
-      res.status(500).json({ message: "Failed to fetch metrics" });
-    }
-  });
+  // API for metrics moved to a more complete implementation below
 
   // API endpoints for user management
   app.get("/api/users", isAuthenticated, hasRole(['Administrator', 'Sales Manager']), async (_req: Request, res: Response) => {
