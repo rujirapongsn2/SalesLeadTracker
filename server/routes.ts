@@ -197,6 +197,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid lead ID" });
       }
 
+      // Get the current user from auth middleware
+      const user = (req as any).user;
+
+      // Check if the lead exists
+      const existingLead = await storage.getLeadById(id);
+      if (!existingLead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      // Check permission: Only allow if user is the creator OR has admin/manager role
+      const userRoleLevel = roleHierarchy[user.role] || 0;
+      const isAdmin = userRoleLevel >= roleHierarchy['Sales Manager']; // Sales Manager or Administrator
+      const isOwner = existingLead.createdBy === user.name;
+
+      if (!isAdmin && !isOwner) {
+        return res.status(403).json({ 
+          message: "You do not have permission to update this lead. Only the creator, Sales Manager, or Administrator can update it." 
+        });
+      }
+
       // Partial validation
       const leadData = req.body;
       if (leadData.status && !leadStatusEnum.safeParse(leadData.status).success) {
@@ -206,31 +226,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid source value" });
       }
 
-      const updatedLead = await storage.updateLead(id, leadData);
+      // Add updatedAt timestamp
+      const updatedLeadData = {
+        ...leadData,
+        updatedAt: Date.now()
+      };
+
+      const updatedLead = await storage.updateLead(id, updatedLeadData);
       if (!updatedLead) {
-        return res.status(404).json({ message: "Lead not found" });
+        return res.status(404).json({ message: "Failed to update lead" });
       }
 
       res.json({ lead: updatedLead });
     } catch (error) {
+      console.error("Error updating lead:", error);
       res.status(500).json({ message: "Failed to update lead" });
     }
   });
 
-  app.delete("/api/leads/:id", isAuthenticated, hasRole(['Administrator', 'Sales Manager']), async (req: Request, res: Response) => {
+  app.delete("/api/leads/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid lead ID" });
       }
 
+      // Get the current user from auth middleware
+      const user = (req as any).user;
+
+      // Check if the lead exists
+      const existingLead = await storage.getLeadById(id);
+      if (!existingLead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      // Check permission: Only allow if user is the creator OR has admin/manager role
+      const userRoleLevel = roleHierarchy[user.role] || 0;
+      const isAdmin = userRoleLevel >= roleHierarchy['Sales Manager']; // Sales Manager or Administrator
+      const isOwner = existingLead.createdBy === user.name;
+
+      if (!isAdmin && !isOwner) {
+        return res.status(403).json({ 
+          message: "You do not have permission to delete this lead. Only the creator, Sales Manager, or Administrator can delete it." 
+        });
+      }
+
       const success = await storage.deleteLead(id);
       if (!success) {
-        return res.status(404).json({ message: "Lead not found" });
+        return res.status(404).json({ message: "Failed to delete lead" });
       }
 
       res.status(204).send();
     } catch (error) {
+      console.error("Error deleting lead:", error);
       res.status(500).json({ message: "Failed to delete lead" });
     }
   });

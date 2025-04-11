@@ -18,6 +18,7 @@ export const leads = sqliteTable("leads", {
   createdAt: integer("created_at"),
   updatedAt: integer("updated_at"),
   createdBy: text("created_by").default("Admin User"),
+  createdById: integer("created_by_id").default(0),
   partnerContact: text("partner_contact").notNull().default(""),
   productRegister: text("product_register").notNull().default(""),
 });
