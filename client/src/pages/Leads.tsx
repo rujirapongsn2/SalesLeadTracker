@@ -106,11 +106,13 @@ export const Leads = () => {
 
   // Filter leads based on search term and filters
   const filteredLeads = leads.filter(lead => {
+    const searchTermLower = searchTerm.toLowerCase();
     const matchesSearch = 
       searchTerm === "" || 
-      lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.company.toLowerCase().includes(searchTerm.toLowerCase());
+      (lead.name && lead.name.toLowerCase().includes(searchTermLower)) ||
+      (lead.email && lead.email.toLowerCase().includes(searchTermLower)) ||
+      (lead.company && lead.company.toLowerCase().includes(searchTermLower)) ||
+      (lead.projectName && lead.projectName.toLowerCase().includes(searchTermLower));
       
     const matchesStatus = statusFilter === "All" || lead.status === statusFilter;
     const matchesSource = sourceFilter === "All" || lead.source === sourceFilter;
