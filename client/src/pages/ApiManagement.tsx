@@ -104,6 +104,18 @@ export const ApiManagement = () => {
     },
   });
 
+  // Function to get full API key
+  const getFullApiKey = async (id: number) => {
+    try {
+      const response = await apiRequest("GET", `/api/api-keys/${id}/full`);
+      const data = await response.json();
+      return data.apiKey.key;
+    } catch (error) {
+      console.error("Error fetching full API key:", error);
+      throw error;
+    }
+  };
+
   // Create API key mutation
   const createApiKeyMutation = useMutation({
     mutationFn: async (data: { name: string; userId: number }) => {
@@ -167,11 +179,10 @@ export const ApiManagement = () => {
   };
 
   // Handle copying API key to clipboard
-  const handleCopyApiKey = async () => {
-    if (!createdApiKey) return;
-
+  const handleCopyApiKey = async (id: number | string) => {
     try {
-      await navigator.clipboard.writeText(createdApiKey);
+      const fullKey = await getFullApiKey(typeof id === 'string' ? parseInt(id) : id);
+      await navigator.clipboard.writeText(fullKey);
       toast({
         title: "คัดลอก API Key สำเร็จ",
         description: "API Key ถูกคัดลอกไปยังคลิปบอร์ดแล้ว",
@@ -179,7 +190,7 @@ export const ApiManagement = () => {
     } catch (error) {
       toast({
         title: "การคัดลอก API Key ล้มเหลว",
-        description: "ไม่สามารถคัดลอก API Key ได้โดยอัตโนมัติ โปรดคัดลอกด้วยตนเอง",
+        description: "ไม่สามารถคัดลอก API Key ได้ กรุณาลองใหม่อีกครั้ง",
         variant: "destructive",
       });
     }
@@ -269,9 +280,17 @@ export const ApiManagement = () => {
                     return (
                       <TableRow key={apiKey.id}>
                         <TableCell className="font-medium">{apiKey.name}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <code className="bg-gray-100 px-2 py-1 rounded text-xs">{apiKey.key}</code>
+                        <TableCell className="max-w-md">
+                          <div className="flex items-center gap-2">
+                            <code className="bg-gray-100 px-2 py-1 rounded text-xs font-mono truncate">{apiKey.key}</code>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 flex-shrink-0"
+                              onClick={() => handleCopyApiKey(apiKey.id)}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
                           </div>
                         </TableCell>
                         <TableCell>{user?.name || `User ID: ${apiKey.userId}`}</TableCell>
@@ -350,7 +369,24 @@ export const ApiManagement = () => {
                     size="icon"
                     variant="ghost"
                     className="absolute right-0 top-0"
-                    onClick={handleCopyApiKey}
+                    onClick={() => {
+                      if (createdApiKey) {
+                        navigator.clipboard.writeText(createdApiKey)
+                          .then(() => {
+                            toast({
+                              title: "คัดลอก API Key สำเร็จ",
+                              description: "API Key ถูกคัดลอกไปยังคลิปบอร์ดแล้ว",
+                            });
+                          })
+                          .catch(() => {
+                            toast({
+                              title: "การคัดลอก API Key ล้มเหลว",
+                              description: "ไม่สามารถคัดลอก API Key ได้ กรุณาลองใหม่อีกครั้ง",
+                              variant: "destructive",
+                            });
+                          });
+                      }
+                    }}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>

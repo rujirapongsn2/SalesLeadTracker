@@ -53,7 +53,7 @@ npm install
 npm run dev
 ```
 
-แอปพลิเคชันจะทำงานที่ http://localhost:5173 และ API จะทำงานที่ http://localhost:3000
+แอปพลิเคชันจะทำงานที่ http://localhost:5173 และ API จะทำงานที่ http://localhost:5001
 
 ## โครงสร้างโปรเจค
 
@@ -99,3 +99,177 @@ SalesLeadTracker/
 ## License
 
 MIT
+
+## API Documentation
+
+### Authentication
+ระบบใช้ Header-based authentication โดยต้องส่ง header ดังนี้:
+- `x-user-id`: ID ของผู้ใช้งาน
+- `x-user-role`: บทบาทของผู้ใช้งาน (Administrator, Sales Manager, Sales Representative)
+- `x-user-name`: ชื่อผู้ใช้งาน
+
+### Endpoints
+
+#### Authentication
+- `POST /api/login`
+  - Request Body:
+    ```json
+    {
+      "username": "string",
+      "password": "string"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "success": true,
+      "user": {
+        "id": number,
+        "name": "string",
+        "role": "string"
+      },
+      "message": "Login successful"
+    }
+    ```
+
+#### Leads
+- `GET /api/leads`
+  - Query Parameters:
+    - `fromDate`: วันที่เริ่มต้น (optional)
+    - `toDate`: วันที่สิ้นสุด (optional)
+  - Response:
+    ```json
+    {
+      "leads": [
+        {
+          "id": number,
+          "name": "string",
+          "email": "string",
+          "phone": "string",
+          "company": "string",
+          "status": "New" | "Contacted" | "Qualified" | "Proposal" | "Negotiation" | "Won" | "Lost",
+          "source": "Website" | "Referral" | "Social Media" | "Other",
+          "createdAt": number,
+          "updatedAt": number,
+          "createdBy": "string",
+          "createdById": number
+        }
+      ]
+    }
+    ```
+
+- `GET /api/leads/:id`
+  - Response:
+    ```json
+    {
+      "lead": {
+        "id": number,
+        "name": "string",
+        "email": "string",
+        "phone": "string",
+        "company": "string",
+        "status": "string",
+        "source": "string",
+        "createdAt": number,
+        "updatedAt": number,
+        "createdBy": "string",
+        "createdById": number
+      }
+    }
+    ```
+
+- `POST /api/leads`
+  - Request Body:
+    ```json
+    {
+      "name": "string",
+      "email": "string",
+      "phone": "string",
+      "company": "string",
+      "status": "New" | "Contacted" | "Qualified" | "Proposal" | "Negotiation" | "Won" | "Lost",
+      "source": "Website" | "Referral" | "Social Media" | "Other"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "lead": {
+        "id": number,
+        "name": "string",
+        "email": "string",
+        "phone": "string",
+        "company": "string",
+        "status": "string",
+        "source": "string",
+        "createdAt": number,
+        "updatedAt": number,
+        "createdBy": "string",
+        "createdById": number
+      }
+    }
+    ```
+
+- `PATCH /api/leads/:id`
+  - Request Body:
+    ```json
+    {
+      "name": "string",
+      "email": "string",
+      "phone": "string",
+      "company": "string",
+      "status": "New" | "Contacted" | "Qualified" | "Proposal" | "Negotiation" | "Won" | "Lost",
+      "source": "Website" | "Referral" | "Social Media" | "Other"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "lead": {
+        "id": number,
+        "name": "string",
+        "email": "string",
+        "phone": "string",
+        "company": "string",
+        "status": "string",
+        "source": "string",
+        "createdAt": number,
+        "updatedAt": number,
+        "createdBy": "string",
+        "createdById": number
+      }
+    }
+    ```
+
+### Error Responses
+- `400 Bad Request`: ข้อมูลที่ส่งมาไม่ถูกต้อง
+- `401 Unauthorized`: ไม่ได้ทำการ authentication
+- `403 Forbidden`: ไม่มีสิทธิ์ในการเข้าถึง
+- `404 Not Found`: ไม่พบข้อมูลที่ต้องการ
+- `500 Internal Server Error`: เกิดข้อผิดพลาดที่เซิร์ฟเวอร์
+
+## API Keys Management
+
+### การสร้าง API Key
+1. เข้าสู่ระบบด้วยบัญชี Administrator
+2. ไปที่หน้า API Management
+3. คลิกปุ่ม "สร้าง API Key ใหม่"
+4. ระบุชื่อ API Key และเลือกผู้ใช้งาน
+5. คลิก "สร้าง API Key"
+6. คัดลอก API Key ที่สร้างขึ้นและเก็บไว้อย่างปลอดภัย (จะแสดงเพียงครั้งเดียว)
+
+### การใช้งาน API Key
+ส่ง API Key ในรูปแบบของ HTTP header ดังนี้:
+```
+X-API-Key: your_api_key_here
+```
+
+### การจัดการ API Keys
+- **ดูรายการ API Keys**: สามารถดูรายการ API Keys ทั้งหมดได้ที่หน้า API Management
+- **ลบ API Key**: สามารถลบ API Key ที่ไม่ต้องการใช้งานได้
+- **ตรวจสอบสถานะ**: ดูสถานะการใช้งานของ API Key (ใช้งานได้/ปิดใช้งาน)
+
+### ข้อควรระวัง
+- เก็บรักษา API Key ไว้อย่างปลอดภัย
+- อย่าแชร์ API Key กับบุคคลที่ไม่เกี่ยวข้อง
+- หากสงสัยว่า API Key รั่วไหล ให้ลบและสร้างใหม่ทันที
+- API Key จะแสดงเพียงครั้งเดียวตอนสร้างเท่านั้น

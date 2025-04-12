@@ -493,16 +493,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
       const apiKeys = await storage.getApiKeys(userId);
       
-      // Don't send the actual key in the list view for security reasons
+      // แสดง API Key เต็มจำนวน
       const safeKeys = apiKeys.map(key => ({
         ...key,
-        key: `${key.key.substring(0, 8)}...${key.key.substring(key.key.length - 8)}`
+        key: key.key
       }));
       
       res.json({ apiKeys: safeKeys });
     } catch (error) {
       console.error("Error fetching API keys:", error);
       res.status(500).json({ message: "Failed to fetch API keys" });
+    }
+  });
+
+  // Get full API key by ID
+  app.get("/api/api-keys/:id/full", isAuthenticated, hasRole(['Administrator']), async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid API key ID" });
+      }
+      
+      const apiKey = await storage.getApiKeyById(id);
+      if (!apiKey) {
+        return res.status(404).json({ message: "API key not found" });
+      }
+      
+      res.json({ apiKey });
+    } catch (error) {
+      console.error("Error fetching API key:", error);
+      res.status(500).json({ message: "Failed to fetch API key" });
     }
   });
   
@@ -578,7 +598,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: req.query.name as string | undefined,
         projectName: req.query.projectName as string | undefined,
         endUserOrganization: req.query.endUserOrganization as string | undefined,
-        company: req.query.company as string | undefined
+        company: req.query.company as string | undefined,
+        product: req.query.product as string | undefined
       };
       
       // Perform search

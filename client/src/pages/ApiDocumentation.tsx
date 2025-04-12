@@ -54,6 +54,7 @@ export const ApiDocumentation = () => {
         { name: "projectName", type: "string", required: false, description: "ค้นหาจากชื่อโปรเจค" },
         { name: "company", type: "string", required: false, description: "ค้นหาจากชื่อบริษัทคู่ค้า" },
         { name: "endUserOrganization", type: "string", required: false, description: "ค้นหาจากชื่อองค์กรของลูกค้า" },
+        { name: "product", type: "string", required: false, description: "ค้นหาจากสินค้าหรือบริการที่สนใจ" }
       ],
       responseExample: JSON.stringify({
         leads: [
@@ -75,13 +76,14 @@ export const ApiDocumentation = () => {
           }
         ]
       }, null, 2),
-      curlExample: `curl -X GET "https://api.example.com/api/v1/leads/search?name=John&company=Acme" \\
+      curlExample: `curl -X GET "http://localhost:5001/api/v1/leads/search?name=John&company=Acme&product=Cloud%20Security" \\
   -H "X-API-Key: your_api_key_here"`,
       jsExample: `// Using fetch
 const apiKey = "your_api_key_here";
-const url = new URL("https://api.example.com/api/v1/leads/search");
+const url = new URL("http://localhost:5001/api/v1/leads/search");
 url.searchParams.append("name", "John");
 url.searchParams.append("company", "Acme");
+url.searchParams.append("product", "Cloud Security");
 
 fetch(url, {
   method: "GET",
@@ -145,7 +147,7 @@ fetch(url, {
           createdById: 1
         }
       }, null, 2),
-      curlExample: `curl -X POST "https://api.example.com/api/v1/leads" \\
+      curlExample: `curl -X POST "http://localhost:5001/api/v1/leads" \\
   -H "X-API-Key: your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -163,7 +165,7 @@ fetch(url, {
   }'`,
       jsExample: `// Using fetch
 const apiKey = "your_api_key_here";
-const url = "https://api.example.com/api/v1/leads";
+const url = "http://localhost:5001/api/v1/leads";
 const data = {
   name: "Jane Smith",
   company: "Tech Solutions Inc.",
@@ -235,7 +237,7 @@ fetch(url, {
           createdById: 1
         }
       }, null, 2),
-      curlExample: `curl -X PATCH "https://api.example.com/api/v1/leads/12" \\
+      curlExample: `curl -X PATCH "http://localhost:5001/api/v1/leads/12" \\
   -H "X-API-Key: your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -246,7 +248,7 @@ fetch(url, {
       jsExample: `// Using fetch
 const apiKey = "your_api_key_here";
 const leadId = 12;
-const url = \`https://api.example.com/api/v1/leads/\${leadId}\`;
+const url = \`http://localhost:5001/api/v1/leads/\${leadId}\`;
 const data = {
   status: "Qualified",
   budget: "฿5,200,000",
@@ -302,7 +304,7 @@ fetch(url, {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Base URL</h3>
                 <div className="bg-gray-100 p-3 rounded-md">
-                  <code className="text-sm text-pink-600">https://api.example.com</code>
+                  <code className="text-sm text-pink-600">http://localhost:5001</code>
                 </div>
                 <p className="mt-2 text-gray-600">
                   URL หลักสำหรับเรียกใช้งาน API ทั้งหมด ในการใช้งานจริงให้แทนที่ด้วย URL ของเซิร์ฟเวอร์ของคุณ
@@ -371,13 +373,13 @@ fetch(url, {
                       variant="ghost"
                       size="icon"
                       className="absolute top-2 right-2"
-                      onClick={() => handleCopyCode(`curl -X GET "https://api.example.com/api/v1/leads/search" \\
+                      onClick={() => handleCopyCode(`curl -X GET "http://localhost:5001/api/v1/leads/search" \\
   -H "X-API-Key: your_api_key_here"`)}
                     >
                       <Code className="h-4 w-4" />
                     </Button>
                     <pre className="text-sm whitespace-pre-wrap">
-{`curl -X GET "https://api.example.com/api/v1/leads/search" \\
+{`curl -X GET "http://localhost:5001/api/v1/leads/search" \\
   -H "X-API-Key: your_api_key_here"`}
                     </pre>
                   </div>

@@ -58,7 +58,7 @@ app.use((req, res, next) => {
 
   // Using port 5000 to match Replit's expected port
   // this serves both the API and the client.
-  const port = 5000;
+  const port = 5001;
   server.listen({
     port,
     host: "0.0.0.0",
