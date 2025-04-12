@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import logo from '@/assets/logo.png';
 
 import {
   Card,
@@ -83,6 +84,13 @@ export default function Login() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
+          <div className="flex justify-center mb-4">
+            <img 
+              src={logo} 
+              alt="LeadFlow Logo" 
+              className="h-16 w-auto object-contain"
+            />
+          </div>
           <CardTitle className="text-2xl font-bold text-center">Sales Lead Tracker</CardTitle>
           <CardDescription className="text-center">
             Enter your credentials to sign in to your account

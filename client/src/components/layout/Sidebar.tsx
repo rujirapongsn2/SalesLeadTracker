@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import logo from '@/assets/logo.png';
 
 type SidebarItemProps = {
   icon: React.ReactNode;
@@ -56,9 +57,11 @@ export const Sidebar = () => {
   return (
     <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 p-4 h-screen">
       <div className="flex items-center mb-8 p-2">
-        <div className="w-10 h-10 bg-gradient-to-r from-[#5efce8] to-[#736efe] flex items-center justify-center rounded-lg mr-3">
-          <span className="text-white font-bold text-lg">SL</span>
-        </div>
+        <img 
+          src={logo} 
+          alt="LeadFlow Logo" 
+          className="h-10 w-auto mr-3 object-contain"
+        />
         <h1 className="font-heading font-bold text-xl bg-gradient-to-r from-[#5efce8] to-[#736efe] bg-clip-text text-transparent">
           LeadFlow
         </h1>
@@ -98,8 +101,6 @@ export const Sidebar = () => {
           </nav>
         </>
       )}
-      
-      {/* User profile section removed */}
     </aside>
   );
 };
