@@ -29,11 +29,12 @@ export const insertLeadSchema = createInsertSchema(leads).omit({
 
 export const leadSourceEnum = z.enum([
   "Website",
+  "Youtube",
+  "Search",
   "Referral",
   "Social Media",
   "Event",
-  "Other",
-  "Other (Custom)",
+  "Other"
 ]);
 
 export const leadStatusEnum = z.enum([

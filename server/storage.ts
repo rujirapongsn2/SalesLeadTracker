@@ -11,7 +11,7 @@ import {
 } from "@shared/schema";
 import { randomBytes } from "crypto";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import { eq, and, or, like } from "drizzle-orm";
+import { eq, and, or, like, sql } from "drizzle-orm";
 import Database from "better-sqlite3";
 
 const sqlite = new Database("sqlite.db");
@@ -31,6 +31,7 @@ export interface IStorage {
     endUserOrganization?: string;
     company?: string;
   }): Promise<Lead[]>;
+  searchLeadsByProduct(product: string): Promise<Lead[]>;
   
   // User methods
   getUsers(): Promise<User[]>;
@@ -113,6 +114,14 @@ export class SQLiteStorage implements IStorage {
     }
     
     return await query;
+  }
+
+  async searchLeadsByProduct(product: string): Promise<Lead[]> {
+    const searchResults = await db.select()
+      .from(leads)
+      .where(sql`LOWER(product_register) LIKE LOWER(${'%' + product + '%'}) OR LOWER(product) LIKE LOWER(${'%' + product + '%'})`)
+      .all();
+    return searchResults;
   }
 
   // User methods

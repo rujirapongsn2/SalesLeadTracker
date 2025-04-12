@@ -54,27 +54,31 @@ export const ApiDocumentation = () => {
         { name: "projectName", type: "string", required: false, description: "ค้นหาจากชื่อโปรเจค" },
         { name: "company", type: "string", required: false, description: "ค้นหาจากชื่อบริษัทคู่ค้า" },
         { name: "endUserOrganization", type: "string", required: false, description: "ค้นหาจากชื่อองค์กรของลูกค้า" },
-        { name: "product", type: "string", required: false, description: "ค้นหาจากสินค้าหรือบริการที่สนใจ" }
+        { name: "product", type: "string", required: false, description: "ค้นหาจากสินค้าหรือบริการที่สนใจ (ค้นหาได้ทั้งจาก product และ product_register)" }
       ],
       responseExample: JSON.stringify({
-        leads: [
+        data: [
           {
             id: 1,
             name: "John Doe",
-            company: "Acme Inc.",
-            email: "john.doe@example.com",
-            phone: "+1 (555) 123-4567",
+            company: "Softnix Technology",
+            email: "john@example.com",
+            phone: "0812345678",
             source: "Website",
-            status: "Qualified",
-            product: "Cloud Security Suite",
-            endUserContact: "Michael Brown",
-            endUserOrganization: "Acme Healthcare",
-            projectName: "Security Upgrade 2025",
-            budget: "฿8,750,000",
-            createdAt: "2025-04-10T12:00:00Z",
-            updatedAt: "2025-04-10T12:00:00Z"
+            status: "New",
+            product: "Data Analytics",
+            product_register: "Softnix Data Platform",
+            endUserContact: "Jane Smith",
+            endUserOrganization: "PTT Global Chemical",
+            projectName: "Data Analytics Platform",
+            budget: "5,000,000",
+            created_at: "2024-03-20T08:00:00Z",
+            updated_at: "2024-03-20T08:00:00Z"
           }
-        ]
+        ],
+        total: 1,
+        page: 1,
+        limit: 10
       }, null, 2),
       curlExample: `curl -X GET "http://localhost:5001/api/v1/leads/search?name=John&company=Acme&product=Cloud%20Security" \\
   -H "X-API-Key: your_api_key_here"`,
@@ -109,43 +113,42 @@ fetch(url, {
         { name: "source", type: "string", required: true, description: "แหล่งที่มา (Website, Referral, Social Media, Event, Other)" },
         { name: "status", type: "string", required: false, description: "สถานะ (New, Qualified, In Progress, Converted, Lost)" },
         { name: "product", type: "string", required: false, description: "สินค้าหรือบริการที่สนใจ" },
+        { name: "product_register", type: "string", required: false, description: "สินค้าหรือบริการที่ลงทะเบียน (Softnix Logger, Softnix Gen AI, Softnix Data Platform, Softnix PDPA, ZABBIX, Other)" },
         { name: "endUserContact", type: "string", required: false, description: "ผู้ติดต่อฝั่งลูกค้า" },
         { name: "endUserOrganization", type: "string", required: false, description: "องค์กรของลูกค้า" },
         { name: "projectName", type: "string", required: false, description: "ชื่อโปรเจค" },
         { name: "budget", type: "string", required: false, description: "งบประมาณ" },
       ],
       requestExample: JSON.stringify({
-        name: "Jane Smith",
-        company: "Tech Solutions Inc.",
-        email: "jane.smith@example.com",
-        phone: "+1 (555) 987-6543",
-        source: "Referral",
+        name: "John Doe",
+        company: "Softnix Technology",
+        email: "john@example.com",
+        phone: "0812345678",
+        source: "Website",
         status: "New",
-        product: "Cloud Storage Platform",
-        endUserContact: "Robert Johnson",
-        endUserOrganization: "Global Retail Inc.",
-        projectName: "Data Storage Expansion",
-        budget: "฿4,500,000"
+        product: "Data Analytics",
+        product_register: "Softnix Data Platform",
+        endUserContact: "Jane Smith",
+        endUserOrganization: "PTT Global Chemical",
+        projectName: "Data Analytics Platform",
+        budget: "5,000,000"
       }, null, 2),
       responseExample: JSON.stringify({
-        lead: {
-          id: 12,
-          name: "Jane Smith",
-          company: "Tech Solutions Inc.",
-          email: "jane.smith@example.com",
-          phone: "+1 (555) 987-6543",
-          source: "Referral",
-          status: "New",
-          product: "Cloud Storage Platform",
-          endUserContact: "Robert Johnson",
-          endUserOrganization: "Global Retail Inc.",
-          projectName: "Data Storage Expansion",
-          budget: "฿4,500,000",
-          createdAt: "2025-04-11T14:30:00Z",
-          updatedAt: "2025-04-11T14:30:00Z",
-          createdBy: "API User",
-          createdById: 1
-        }
+        id: 1,
+        name: "John Doe",
+        company: "Softnix Technology",
+        email: "john@example.com",
+        phone: "0812345678",
+        source: "Website",
+        status: "New",
+        product: "Data Analytics",
+        product_register: "Softnix Data Platform",
+        endUserContact: "Jane Smith",
+        endUserOrganization: "PTT Global Chemical",
+        projectName: "Data Analytics Platform",
+        budget: "5,000,000",
+        created_at: "2024-03-20T08:00:00Z",
+        updated_at: "2024-03-20T08:00:00Z"
       }, null, 2),
       curlExample: `curl -X POST "http://localhost:5001/api/v1/leads" \\
   -H "X-API-Key: your_api_key_here" \\

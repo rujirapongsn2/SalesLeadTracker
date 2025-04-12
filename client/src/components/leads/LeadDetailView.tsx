@@ -262,7 +262,7 @@ export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps)
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="tasks">Tasks</TabsTrigger>
+              <TabsTrigger value="tasks">To-do</TabsTrigger>
             </TabsList>
 
             <TabsContent value="details" className="space-y-6">
@@ -270,14 +270,85 @@ export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps)
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
                     <div>
-                      <h3 className="text-lg font-medium">Basic Information</h3>
+                      <h3 className="text-lg font-medium">Project Information</h3>
+                      <div className="grid grid-cols-2 gap-4 mt-2">
+                        <FormField
+                          control={form.control}
+                          name="projectName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Project Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="productRegister"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Product Register</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="budget"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Budget</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="endUserContact"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>End User Contact Point</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="endUserOrganization"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>End User Organization</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium">Partner Information</h3>
                       <div className="grid grid-cols-2 gap-4 mt-2">
                         <FormField
                           control={form.control}
                           name="name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Name</FormLabel>
+                              <FormLabel>Contact Partner Name</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
@@ -290,7 +361,7 @@ export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps)
                           name="company"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Company</FormLabel>
+                              <FormLabel>Partner Company</FormLabel>
                               <FormControl>
                                 <Input {...field} />
                               </FormControl>
@@ -326,6 +397,35 @@ export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps)
                         />
                         <FormField
                           control={form.control}
+                          name="source"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Source</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a source" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Website">Website</SelectItem>
+                                  <SelectItem value="Youtube">Youtube</SelectItem>
+                                  <SelectItem value="Search">Search</SelectItem>
+                                  <SelectItem value="Referral">Referral</SelectItem>
+                                  <SelectItem value="Social Media">Social Media</SelectItem>
+                                  <SelectItem value="Event">Event</SelectItem>
+                                  <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
                           name="status"
                           render={({ field }) => (
                             <FormItem>
@@ -351,152 +451,9 @@ export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps)
                             </FormItem>
                           )}
                         />
-                        <FormField
-                          control={form.control}
-                          name="source"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Source</FormLabel>
-                              <Select 
-                                onValueChange={field.onChange} 
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a source" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Website">Website</SelectItem>
-                                  <SelectItem value="Referral">Referral</SelectItem>
-                                  <SelectItem value="Social Media">Social Media</SelectItem>
-                                  <SelectItem value="Event">Event</SelectItem>
-                                  <SelectItem value="Other">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
                       </div>
                     </div>
 
-
-                    <div>
-                      <h3 className="text-lg font-medium">Project Information</h3>
-                      <div className="grid grid-cols-2 gap-4 mt-2">
-                        <FormField
-                          control={form.control}
-                          name="projectName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Project Name</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="budget"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Budget</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter project budget (฿)" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="productRegister"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Product</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="productRegister"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Product Register</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-medium">End User Information</h3>
-                      <div className="grid grid-cols-2 gap-4 mt-2">
-                        <FormField
-                          control={form.control}
-                          name="endUserOrganization"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>End User Organization</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="endUserContact"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>End User Contact</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  className="min-h-[100px]" 
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-medium">Partner Information</h3>
-                      <div className="grid grid-cols-2 gap-4 mt-2">
-                        <FormField
-                          control={form.control}
-                          name="partnerContact"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Partner Contact</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  className="min-h-[100px]" 
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-              
                     <div>
                       <h3 className="text-lg font-medium">Record Information</h3>
                       <div className="grid grid-cols-2 gap-4 mt-2">
@@ -537,14 +494,40 @@ export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps)
               ) : (
                 <>
                   <div>
-                    <h3 className="text-lg font-medium">Basic Information</h3>
+                    <h3 className="text-lg font-medium">Project Information</h3>
                     <div className="grid grid-cols-2 gap-4 mt-2">
                       <div>
-                        <p className="text-sm text-gray-500">Name</p>
+                        <p className="text-sm text-gray-500">Project Name</p>
+                        <p>{data.projectName || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Product Register</p>
+                        <p>{data.productRegister || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Budget</p>
+                        <p>{data.budget || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">End User Contact Point</p>
+                        <p>{data.endUserContact || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">End User Organization</p>
+                        <p>{data.endUserOrganization || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-medium">Partner Information</h3>
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <p className="text-sm text-gray-500">Contact Partner Name</p>
                         <p>{data.name}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Company</p>
+                        <p className="text-sm text-gray-500">Partner Company</p>
                         <p>{data.company}</p>
                       </div>
                       <div>
@@ -556,58 +539,12 @@ export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps)
                         <p>{data.phone}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Status</p>
-                        <p>{data.status}</p>
-                      </div>
-                      <div>
                         <p className="text-sm text-gray-500">Source</p>
                         <p>{data.source}</p>
                       </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-medium">Project Information</h3>
-                    <div className="grid grid-cols-1 gap-4 mb-6">
                       <div>
-                        <h3 className="text-sm font-medium text-gray-500">Project Name</h3>
-                        <p className="mt-1">{data?.projectName || "Not specified"}</p>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">Budget</h3>
-                        <p className="mt-1">{data?.budget ? data.budget : "Not specified"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Product Register</p>
-                        <p>{data.productRegister || data.product || 'N/A'}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-medium">End User Information</h3>
-                    <div className="grid grid-cols-2 gap-4 mt-2">
-                      <div>
-                        <p className="text-sm text-gray-500">End User Organization</p>
-                        <p>{data.endUserOrganization || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">End User Contact</p>
-                        <p className="whitespace-pre-line">{data.endUserContact || 'N/A'}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-medium">Partner Information</h3>
-                    <div className="grid grid-cols-2 gap-4 mt-2">
-                      <div>
-                        <p className="text-sm text-gray-500">Partner Company</p>
-                        <p>{data.company || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Partner Contact</p>
-                        <p className="whitespace-pre-line">{data.partnerContact || 'N/A'}</p>
+                        <p className="text-sm text-gray-500">Status</p>
+                        <p>{data.status}</p>
                       </div>
                     </div>
                   </div>
@@ -704,5 +641,7 @@ export const LeadDetailView = ({ leadId, isOpen, onClose }: LeadDetailViewProps)
     </Dialog>
   );
 };
+
+
 
 

@@ -204,6 +204,7 @@ export const LeadTable = () => {
               <TableHead className="font-medium text-gray-500">End User</TableHead>
               <TableHead className="font-medium text-gray-500">Partner Company</TableHead>
               <TableHead className="font-medium text-gray-500">Status</TableHead>
+              <TableHead className="font-medium text-gray-500">Source</TableHead>
               <TableHead className="font-medium text-gray-500"></TableHead>
             </TableRow>
           </TableHeader>
@@ -233,8 +234,8 @@ export const LeadTable = () => {
                   <p className="text-sm">{lead.projectName || 'N/A'}</p>
                 </TableCell>
                 <TableCell>
-                  <p className="text-sm">{lead.endUserOrganization || 'N/A'}</p>
-                  <p className="text-sm text-gray-500 truncate max-w-[150px]">{lead.endUserContact || 'N/A'}</p>
+                  <div>{lead.endUserOrganization || 'N/A'}</div>
+                  <div className="text-sm text-gray-500 truncate max-w-[200px]">{lead.endUserContact || 'N/A'}</div>
                 </TableCell>
                 <TableCell>
                   <p className="text-sm">{lead.company}</p>
@@ -242,6 +243,11 @@ export const LeadTable = () => {
                 <TableCell>
                   <span className={`status-badge ${STATUS_COLORS[lead.status]?.bg} ${STATUS_COLORS[lead.status]?.text}`}>
                     {lead.status}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className={`source-badge ${SOURCE_COLORS[lead.source]?.bg} ${SOURCE_COLORS[lead.source]?.text}`}>
+                    {lead.source}
                   </span>
                 </TableCell>
                 <TableCell>

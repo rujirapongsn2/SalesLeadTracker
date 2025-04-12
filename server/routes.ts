@@ -5,6 +5,7 @@ import { insertLeadSchema, leadStatusEnum, leadSourceEnum, insertUserSchema, Use
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { z } from "zod";
+import express from "express";
 
 // Define login schema
 const loginSchema = z.object({
@@ -87,6 +88,9 @@ const hasRole = (requiredRoles: string[]) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // API v1 routes
+  const v1Router = express.Router();
+
   // Login endpoint
   app.post("/api/login", async (req: Request, res: Response) => {
     try {
@@ -125,6 +129,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Leads routes
+  v1Router.get("/leads", async (req: Request, res: Response) => {
+    try {
+      const { fromDate, toDate } = req.query;
+      const leads = await storage.getLeads();
+      
+      // Filter leads by date range if provided
+      let filteredLeads = leads;
+      if (fromDate || toDate) {
+        filteredLeads = leads.filter(lead => {
+          const leadDate = new Date(lead.createdAt || 0);
+          
+          if (fromDate && toDate) {
+            return leadDate >= new Date(fromDate as string) && 
+                   leadDate <= new Date(toDate as string);
+          } else if (fromDate) {
+            return leadDate >= new Date(fromDate as string);
+          } else if (toDate) {
+            return leadDate <= new Date(toDate as string);
+          }
+          return true;
+        });
+      }
+      
+      res.json({ leads: filteredLeads });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch leads" });
+    }
+  });
+
+  v1Router.get("/leads/search", async (req: Request, res: Response) => {
+    try {
+      const { product } = req.query;
+      if (!product) {
+        return res.status(400).json({ message: "Product parameter is required" });
+      }
+
+      const leads = await storage.searchLeadsByProduct(product as string);
+      res.json({ leads });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to search leads" });
+    }
+  });
+
+  v1Router.get("/leads/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid lead ID" });
+      }
+
+      const lead = await storage.getLeadById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      res.json({ lead });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch lead" });
+    }
+  });
+
+  v1Router.post("/leads", async (req: Request, res: Response) => {
+    try {
+      const leadData = insertLeadSchema.parse(req.body);
+      const now = Date.now();
+      const enrichedLeadData = {
+        ...leadData,
+        createdAt: now,
+        updatedAt: now,
+        createdBy: "API User",
+        createdById: 0
+      };
+      
+      const lead = await storage.createLead(enrichedLeadData);
+      res.status(201).json({ lead });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      res.status(500).json({ message: "Failed to create lead" });
+    }
+  });
+
+  v1Router.patch("/leads/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid lead ID" });
+      }
+
+      const lead = await storage.getLeadById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      const updates = req.body;
+      const updatedLead = await storage.updateLead(id, updates);
+      res.json({ lead: updatedLead });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update lead" });
+    }
+  });
+
+  v1Router.delete("/leads/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid lead ID" });
+      }
+
+      const lead = await storage.getLeadById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      await storage.deleteLead(id);
+      res.json({ message: "Lead deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete lead" });
+    }
+  });
+
+  // Mount v1 router
+  app.use("/api/v1", v1Router);
+
   // API routes for leads
   app.get("/api/leads", isAuthenticated, async (req: Request, res: Response) => {
     try {
