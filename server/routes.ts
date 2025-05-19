@@ -504,7 +504,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update user
+  // Delete user
+  app.delete("/api/users/:id", isAuthenticated, hasRole(['Administrator']), async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Check if the user exists
+      const existingUser = await storage.getUser(id);
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Attempt to delete the user
+      try {
+        const success = await storage.deleteUser(id);
+        if (!success) {
+          return res.status(400).json({ message: "Failed to delete user" });
+        }
+      } catch (err: any) {
+        // If error is thrown for last admin, return 400 with message
+        return res.status(400).json({ message: err.message || "Failed to delete user" });
+      }
+
+      return res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+// Update user
   app.patch("/api/users/:id", isAuthenticated, hasRole(['Administrator', 'Sales Manager']), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
