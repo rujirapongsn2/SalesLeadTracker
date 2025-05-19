@@ -158,9 +158,20 @@ export const Leads = () => {
 
   return (
     <>
-      <div className="mb-8">
-        <h1 className="text-2xl font-heading font-bold mb-2">Leads Management</h1>
-        <p className="text-gray-500">View and manage all your customer leads</p>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-heading font-bold mb-2">Leads Management</h1>
+          <p className="text-gray-500">View and manage all your customer leads</p>
+        </div>
+        <Button
+          onClick={() => setIsAddLeadDialogOpen(true)}
+          variant="default"
+          size="lg"
+          className="h-12 px-8 bg-gradient-to-r from-cyan-400 to-blue-500 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Add Lead
+        </Button>
       </div>
 
       <Card>
@@ -335,15 +346,7 @@ export const Leads = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Add Lead Button */}
-      <Button
-        onClick={() => setIsAddLeadDialogOpen(true)}
-        variant="default"
-        size="lg"
-        className="fixed bottom-6 right-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 h-14 w-14 z-20 p-0 bg-gradient-to-r from-cyan-400 to-blue-500"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
+
     </>
   );
 };
