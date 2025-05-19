@@ -108,6 +108,10 @@ SalesLeadTracker/
 
 MIT
 
+## ผู้พัฒนา
+
+ผู้พัฒนา: Rujirapong R
+
 ## API Documentation
 
 ### Authentication
