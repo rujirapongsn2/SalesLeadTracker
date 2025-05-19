@@ -1,0 +1,29 @@
+services:
+  app:
+    image: saleslead-dev:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    container_name: saleslead_dev
+    command: ["npx", "tsx", "--watch", "server/index.ts"]
+    ports:
+      - "5001:5001"
+    environment:
+      NODE_ENV: development
+      DATABASE_FILE: /app/data/sqlite.db
+      DATABASE_URL: file:/app/data/sqlite.db
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - .:/app
+      # - .:/app:delegated
+      - /app/node_modules
+      - sqlite_data:/app/data
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3
+
+volumes:
+  sqlite_data:

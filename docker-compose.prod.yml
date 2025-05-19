@@ -1,0 +1,20 @@
+services:
+  app:
+    image: saleslead-prod:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: saleslead_prod
+    ports:
+      - "5001:5001"
+    environment:
+      NODE_ENV: production
+      DATABASE_FILE: /app/data/sqlite.db
+      DATABASE_URL: file:/app/data/sqlite.db
+    volumes:
+      - sqlite_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  sqlite_data:
