@@ -48,13 +48,14 @@ export const ApiDocumentation = () => {
       name: "ค้นหาข้อมูลลูกค้าเป้าหมาย",
       method: "GET",
       endpoint: "/api/v1/leads/search",
-      description: "ค้นหาข้อมูลลูกค้าเป้าหมายตามเงื่อนไขต่างๆ เช่น ชื่อลูกค้า, ชื่อโปรเจค, บริษัทคู่ค้า, หรือองค์กรของลูกค้า",
+      description: "ค้นหาข้อมูลลูกค้าเป้าหมายตามเงื่อนไขต่างๆ สามารถค้นหาได้ทั้งแบบระบุฟิลด์ที่ต้องการหรือค้นหาด้วยคีย์เวิร์ดในทุกฟิลด์",
       parameters: [
-        { name: "name", type: "string", required: false, description: "ค้นหาจากชื่อลูกค้าเป้าหมาย" },
-        { name: "projectName", type: "string", required: false, description: "ค้นหาจากชื่อโปรเจค" },
-        { name: "company", type: "string", required: false, description: "ค้นหาจากชื่อบริษัทคู่ค้า" },
-        { name: "endUserOrganization", type: "string", required: false, description: "ค้นหาจากชื่อองค์กรของลูกค้า" },
-        { name: "product", type: "string", required: false, description: "ค้นหาจากสินค้าหรือบริการที่สนใจ (ค้นหาได้ทั้งจาก product และ product_register)" }
+        { name: "keyword", type: "string", required: false, description: "ค้นหาจากทุกฟิลด์ (ชื่อ, บริษัท, โปรเจค, องค์กร, สินค้า, อีเมล, เบอร์โทร, ผู้ติดต่อ)" },
+        { name: "name", type: "string", required: false, description: "ค้นหาจากชื่อลูกค้าเป้าหมาย (ไม่จำเป็นต้องกรอกทั้งหมด)" },
+        { name: "projectName", type: "string", required: false, description: "ค้นหาจากชื่อโปรเจค (ไม่จำเป็นต้องกรอกทั้งหมด)" },
+        { name: "company", type: "string", required: false, description: "ค้นหาจากชื่อบริษัทคู่ค้า (ไม่จำเป็นต้องกรอกทั้งหมด)" },
+        { name: "endUserOrganization", type: "string", required: false, description: "ค้นหาจากชื่อองค์กรของลูกค้า (ไม่จำเป็นต้องกรอกทั้งหมด)" },
+        { name: "product", type: "string", required: false, description: "ค้นหาจากสินค้าหรือบริการที่สนใจ (ไม่จำเป็นต้องกรอกทั้งหมด)" }
       ],
       responseExample: JSON.stringify({
         data: [
@@ -80,24 +81,71 @@ export const ApiDocumentation = () => {
         page: 1,
         limit: 10
       }, null, 2),
-      curlExample: `curl -X GET "http://localhost:5001/api/v1/leads/search?name=John&company=Acme&product=Cloud%20Security" \\
-  -H "X-API-Key: your_api_key_here"`,
-      jsExample: `// Using fetch
-const apiKey = "your_api_key_here";
-const url = new URL("http://localhost:5001/api/v1/leads/search");
-url.searchParams.append("name", "John");
-url.searchParams.append("company", "Acme");
-url.searchParams.append("product", "Cloud Security");
+      curlExample: `# ค้นหาด้วยคีย์เวิร์ด (ค้นหาทุกฟิลด์)
+curl -X GET "http://saletrack.softnix.co.th:5001/api/v1/leads/search?keyword=John" \\
+  -H "X-API-Key: your_api_key_here"
 
-fetch(url, {
-  method: "GET",
-  headers: {
-    "X-API-Key": apiKey
+# ค้นหาด้วยฟิลด์ที่ระบุ
+curl -X GET "http://saletrack.softnix.co.th:5001/api/v1/leads/search?name=John&company=Acme" \\
+  -H "X-API-Key: your_api_key_here"
+
+# ค้นหาทั้งหมด (ไม่ระบุพารามิเตอร์ใดๆ)
+curl -X GET "http://saletrack.softnix.co.th:5001/api/v1/leads/search" \\
+  -H "X-API-Key: your_api_key_here"`,
+      jsExample: `// ตัวอย่างการค้นหาด้วยคีย์เวิร์ด
+const searchByKeyword = async (keyword) => {
+  const apiKey = "your_api_key_here";
+  const url = new URL("http://saletrack.softnix.co.th:5001/api/v1/leads/search");
+  url.searchParams.append("keyword", keyword);
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { "X-API-Key": apiKey }
+    });
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error("Error:", error);
   }
-})
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(error => console.error("Error:", error));`
+};
+
+// ตัวอย่างการค้นหาด้วยฟิลด์ที่ระบุ
+const searchByFields = async (name, company) => {
+  const apiKey = "your_api_key_here";
+  const url = new URL("http://saletrack.softnix.co.th:5001/api/v1/leads/search");
+  
+  if (name) url.searchParams.append("name", name);
+  if (company) url.searchParams.append("company", company);
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { "X-API-Key": apiKey }
+    });
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+
+// ตัวอย่างการดึงข้อมูลทั้งหมด
+const getAllLeads = async () => {
+  const apiKey = "your_api_key_here";
+  const url = "http://saletrack.softnix.co.th:5001/api/v1/leads/search";
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { "X-API-Key": apiKey }
+    });
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};`
     },
     {
       id: "create-lead",
@@ -150,7 +198,7 @@ fetch(url, {
         created_at: "2024-03-20T08:00:00Z",
         updated_at: "2024-03-20T08:00:00Z"
       }, null, 2),
-      curlExample: `curl -X POST "http://localhost:5001/api/v1/leads" \\
+      curlExample: `curl -X POST "http://saletrack.softnix.co.th:5001/api/v1/leads" \\
   -H "X-API-Key: your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -168,7 +216,7 @@ fetch(url, {
   }'`,
       jsExample: `// Using fetch
 const apiKey = "your_api_key_here";
-const url = "http://localhost:5001/api/v1/leads";
+const url = "http://saletrack.softnix.co.th:5001/api/v1/leads";
 const data = {
   name: "Jane Smith",
   company: "Tech Solutions Inc.",
@@ -240,7 +288,7 @@ fetch(url, {
           createdById: 1
         }
       }, null, 2),
-      curlExample: `curl -X PATCH "http://localhost:5001/api/v1/leads/12" \\
+      curlExample: `curl -X PATCH "http://saletrack.softnix.co.th:5001/api/v1/leads/12" \\
   -H "X-API-Key: your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -251,7 +299,7 @@ fetch(url, {
       jsExample: `// Using fetch
 const apiKey = "your_api_key_here";
 const leadId = 12;
-const url = \`http://localhost:5001/api/v1/leads/\${leadId}\`;
+const url = \`http://saletrack.softnix.co.th:5001/api/v1/leads/\${leadId}\`;
 const data = {
   status: "Qualified",
   budget: "฿5,200,000",
@@ -307,7 +355,7 @@ fetch(url, {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Base URL</h3>
                 <div className="bg-gray-100 p-3 rounded-md">
-                  <code className="text-sm text-pink-600">http://localhost:5001</code>
+                  <code className="text-sm text-pink-600">http://saletrack.softnix.co.th:5001</code>
                 </div>
                 <p className="mt-2 text-gray-600">
                   URL หลักสำหรับเรียกใช้งาน API ทั้งหมด ในการใช้งานจริงให้แทนที่ด้วย URL ของเซิร์ฟเวอร์ของคุณ
@@ -376,13 +424,13 @@ fetch(url, {
                       variant="ghost"
                       size="icon"
                       className="absolute top-2 right-2"
-                      onClick={() => handleCopyCode(`curl -X GET "http://localhost:5001/api/v1/leads/search" \\
+                      onClick={() => handleCopyCode(`curl -X GET "http://saletrack.softnix.co.th:5001/api/v1/leads/search" \\
   -H "X-API-Key: your_api_key_here"`)}
                     >
                       <Code className="h-4 w-4" />
                     </Button>
                     <pre className="text-sm whitespace-pre-wrap">
-{`curl -X GET "http://localhost:5001/api/v1/leads/search" \\
+{`curl -X GET "http://saletrack.softnix.co.th:5001/api/v1/leads/search" \\
   -H "X-API-Key: your_api_key_here"`}
                     </pre>
                   </div>

@@ -61,7 +61,7 @@ npm install
 npm run dev
 ```
 
-แอปพลิเคชันจะทำงานที่ http://localhost:5173 และ API จะทำงานที่ http://localhost:5001
+แอปพลิเคชันจะทำงานที่ https://saletrack.softnix.co.th และ API จะทำงานที่ https://saletrack.softnix.co.th/api
 
 ## โครงสร้างโปรเจค
 
