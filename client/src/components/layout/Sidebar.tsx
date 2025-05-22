@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import logo from '@/assets/logo.png';
+import logo from '@/assets/Logo.png';
 
 type SidebarItemProps = {
   icon: React.ReactNode;
