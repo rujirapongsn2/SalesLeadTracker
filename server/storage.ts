@@ -84,13 +84,34 @@ export class SQLiteStorage implements IStorage {
   }
   
   async searchLeads(searchParams: { 
+    keyword?: string;
     name?: string;
     projectName?: string;
     endUserOrganization?: string;
     company?: string;
+    product?: string;
   }): Promise<Lead[]> {
-    let query = db.select().from(leads);
+    // If keyword is provided, search across all relevant fields
+    if (searchParams.keyword) {
+      const keyword = `%${searchParams.keyword}%`;
+      return await db
+        .select()
+        .from(leads)
+        .where(
+          or(
+            like(leads.name, keyword),
+            like(leads.projectName, keyword),
+            like(leads.company, keyword),
+            like(leads.endUserOrganization, keyword),
+            like(leads.product, keyword),
+            like(leads.email, keyword),
+            like(leads.phone, keyword),
+            like(leads.endUserContact, keyword)
+          )
+        );
+    }
     
+    // Individual field searches (for backward compatibility)
     const conditions = [];
     
     if (searchParams.name) {
@@ -109,11 +130,18 @@ export class SQLiteStorage implements IStorage {
       conditions.push(like(leads.company, `%${searchParams.company}%`));
     }
     
-    if (conditions.length > 0) {
-      query = query.where(or(...conditions));
+    if (searchParams.product) {
+      conditions.push(like(leads.product, `%${searchParams.product}%`));
     }
     
-    return await query;
+    if (conditions.length === 0) {
+      return await db.select().from(leads);
+    }
+    
+    return await db
+      .select()
+      .from(leads)
+      .where(and(...conditions));
   }
 
   async searchLeadsByProduct(product: string): Promise<Lead[]> {

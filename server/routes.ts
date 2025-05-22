@@ -162,15 +162,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   v1Router.get("/leads/search", async (req: Request, res: Response) => {
     try {
-      const { product } = req.query;
-      if (!product) {
-        return res.status(400).json({ message: "Product parameter is required" });
-      }
-
-      const leads = await storage.searchLeadsByProduct(product as string);
+      // Get search parameters
+      const searchParams = {
+        keyword: req.query.keyword as string | undefined,
+        name: req.query.name as string | undefined,
+        projectName: req.query.projectName as string | undefined,
+        endUserOrganization: req.query.endUserOrganization as string | undefined,
+        company: req.query.company as string | undefined,
+        product: req.query.product as string | undefined
+      };
+      
+      // Log the search parameters for debugging
+      console.log('Internal search parameters:', searchParams);
+      
+      // Perform search
+      const leads = await storage.searchLeads(searchParams);
+      
+      // Log the number of results for debugging
+      console.log(`Found ${leads.length} matching leads`);
+      
       res.json({ leads });
     } catch (error) {
-      res.status(500).json({ message: "Failed to search leads" });
+      console.error("Error in internal search:", error);
+      res.status(500).json({ message: "Failed to search leads", error: (error as Error).message });
     }
   });
 
@@ -757,19 +771,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update last used timestamp
       await storage.updateApiKey(key.id, { lastUsed: new Date() });
       
-      // Get search parameters
+      // Get search parameters - all are optional
       const searchParams = {
+        keyword: req.query.keyword as string | undefined,
         name: req.query.name as string | undefined,
         projectName: req.query.projectName as string | undefined,
         endUserOrganization: req.query.endUserOrganization as string | undefined,
         company: req.query.company as string | undefined,
-        product: req.query.product as string | undefined
+        product: req.query.product as string | undefined,
+        email: req.query.email as string | undefined,
+        phone: req.query.phone as string | undefined,
+        endUserContact: req.query.endUserContact as string | undefined,
+        status: req.query.status as string | undefined,
+        source: req.query.source as string | undefined
       };
+      
+      // Log the search parameters for debugging
+      console.log('Search parameters:', searchParams);
       
       // Perform search
       const leads = await storage.searchLeads(searchParams);
       
-      res.json({ leads });
+      // Log the number of results for debugging
+      console.log(`Found ${leads.length} matching leads`);
+      
+      res.json({ 
+        success: true,
+        count: leads.length,
+        data: leads
+      });
     } catch (error) {
       console.error("Error searching leads:", error);
       res.status(500).json({ message: "Failed to search leads", error: (error as Error).message });
