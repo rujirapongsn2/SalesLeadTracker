@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/Logo.png';
 
 import {
   Card,
