@@ -77,6 +77,7 @@ export const ApiManagement = () => {
   const [createdApiKey, setCreatedApiKey] = useState<string | null>(null);
   const [deleteKeyId, setDeleteKeyId] = useState<number | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [copyingKeyId, setCopyingKeyId] = useState<number | null>(null);
 
   // Fetch API keys
   const {
@@ -179,20 +180,61 @@ export const ApiManagement = () => {
   };
 
   // Handle copying API key to clipboard
-  const handleCopyApiKey = async (id: number | string) => {
+  const handleCopyApiKey = async (id: number | string, currentKey?: string) => {
+    const keyId = id === 'new' ? -1 : (typeof id === 'string' ? parseInt(id) : id);
+    setCopyingKeyId(keyId);
+    
     try {
-      const fullKey = await getFullApiKey(typeof id === 'string' ? parseInt(id) : id);
-      await navigator.clipboard.writeText(fullKey);
-      toast({
-        title: "คัดลอก API Key สำเร็จ",
-        description: "API Key ถูกคัดลอกไปยังคลิปบอร์ดแล้ว",
-      });
+      let keyToCopy = currentKey;
+      
+      // If no current key provided or it's masked, fetch full key
+      if (!currentKey || currentKey.includes('***')) {
+        if (id !== 'new') {
+          keyToCopy = await getFullApiKey(keyId);
+        }
+      }
+      
+      if (!keyToCopy) {
+        throw new Error('No API key to copy');
+      }
+      
+      // Check if clipboard API is supported
+      if (!navigator.clipboard) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = keyToCopy;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+          toast({
+            title: "คัดลอก API Key สำเร็จ",
+            description: "API Key ถูกคัดลอกไปยังคลิปบอร์ดแล้ว",
+          });
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      } else {
+        await navigator.clipboard.writeText(keyToCopy);
+        toast({
+          title: "คัดลอก API Key สำเร็จ",
+          description: "API Key ถูกคัดลอกไปยังคลิปบอร์ดแล้ว",
+        });
+      }
     } catch (error) {
+      console.error("Error copying API key:", error);
       toast({
         title: "การคัดลอก API Key ล้มเหลว",
         description: "ไม่สามารถคัดลอก API Key ได้ กรุณาลองใหม่อีกครั้ง",
         variant: "destructive",
       });
+    } finally {
+      setCopyingKeyId(null);
     }
   };
 
@@ -202,6 +244,7 @@ export const ApiManagement = () => {
     setSelectedUserId(null);
     setCreatedApiKey(null);
     setIsNewKeyDialogOpen(false);
+    setCopyingKeyId(null);
   };
 
   // Format date for display
@@ -282,14 +325,22 @@ export const ApiManagement = () => {
                         <TableCell className="font-medium">{apiKey.name}</TableCell>
                         <TableCell className="max-w-md">
                           <div className="flex items-center gap-2">
-                            <code className="bg-gray-100 px-2 py-1 rounded text-xs font-mono truncate">{apiKey.key}</code>
+                            <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs font-mono truncate max-w-48 select-all">
+                              {apiKey.key}
+                            </code>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 flex-shrink-0"
-                              onClick={() => handleCopyApiKey(apiKey.id)}
+                              className="h-8 w-8 flex-shrink-0 hover:bg-blue-50 dark:hover:bg-blue-900"
+                              onClick={() => handleCopyApiKey(apiKey.id, apiKey.key)}
+                              title={copyingKeyId === apiKey.id ? "กำลังคัดลอก..." : "คัดลอก API Key"}
+                              disabled={copyingKeyId === apiKey.id}
                             >
-                              <Copy className="h-4 w-4" />
+                              {copyingKeyId === apiKey.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                              ) : (
+                                <Copy className="h-4 w-4 text-gray-600 hover:text-blue-600" />
+                              )}
                             </Button>
                           </div>
                         </TableCell>
@@ -371,24 +422,17 @@ export const ApiManagement = () => {
                     className="absolute right-0 top-0"
                     onClick={() => {
                       if (createdApiKey) {
-                        navigator.clipboard.writeText(createdApiKey)
-                          .then(() => {
-                            toast({
-                              title: "คัดลอก API Key สำเร็จ",
-                              description: "API Key ถูกคัดลอกไปยังคลิปบอร์ดแล้ว",
-                            });
-                          })
-                          .catch(() => {
-                            toast({
-                              title: "การคัดลอก API Key ล้มเหลว",
-                              description: "ไม่สามารถคัดลอก API Key ได้ กรุณาลองใหม่อีกครั้ง",
-                              variant: "destructive",
-                            });
-                          });
+                        // Use the improved copy function
+                        handleCopyApiKey('new', createdApiKey);
                       }
                     }}
+                    disabled={copyingKeyId === -1}
                   >
-                    <Copy className="h-4 w-4" />
+                    {copyingKeyId === -1 ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
