@@ -1,0 +1,136 @@
+{
+  "info": {
+    "name": "Sales Lead Tracker API",
+    "description": "API Collection for Sales Lead Tracker system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-Key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5001"
+    },
+    {
+      "key": "api_key",
+      "value": "your_api_key_here",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Search All Leads",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/leads/search",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "leads", "search"]
+        },
+        "description": "ค้นหาข้อมูลลูกค้าเป้าหมายทั้งหมด"
+      }
+    },
+    {
+      "name": "Search Leads by Keyword",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/leads/search?keyword=Softnix",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "leads", "search"],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "Softnix"
+            }
+          ]
+        },
+        "description": "ค้นหาลูกค้าเป้าหมายด้วยคีย์เวิร์ด"
+      }
+    }
+  ]
+}    ,
+    {
+      "name": "Search Leads by Specific Fields",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/leads/search?company=Softnix&status=New",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "leads", "search"],
+          "query": [
+            {
+              "key": "company",
+              "value": "Softnix"
+            },
+            {
+              "key": "status",
+              "value": "New"
+            }
+          ]
+        },
+        "description": "ค้นหาลูกค้าเป้าหมายตามฟิลด์ที่ระบุ"
+      }
+    },
+    {
+      "name": "Create New Lead",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{$randomFullName}}\",\n  \"company\": \"{{$randomCompanyName}}\",\n  \"email\": \"{{$randomEmail}}\",\n  \"phone\": \"+66812345678\",\n  \"source\": \"Website\",\n  \"status\": \"New\",\n  \"product\": \"Softnix Data Platform\",\n  \"productRegister\": \"Softnix Data Platform\",\n  \"endUserContact\": \"{{$randomFullName}}\",\n  \"endUserOrganization\": \"{{$randomCompanyName}}\",\n  \"projectName\": \"Digital Transformation Project\",\n  \"budget\": \"2,000,000\",\n  \"partnerContact\": \"{{$randomFullName}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/leads",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "leads"]
+        },
+        "description": "สร้างลูกค้าเป้าหมายใหม่"
+      }
+    },
+    {
+      "name": "Update Lead",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"Qualified\",\n  \"budget\": \"2,500,000\",\n  \"phone\": \"+66987654321\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/leads/1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "leads", "1"]
+        },
+        "description": "แก้ไขข้อมูลลูกค้าเป้าหมาย (แก้ไข ID ในพาธ)"
+      }
+    }
+  ]
+}

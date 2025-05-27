@@ -82,20 +82,20 @@ export const ApiDocumentation = () => {
         limit: 10
       }, null, 2),
       curlExample: `# ค้นหาด้วยคีย์เวิร์ด (ค้นหาทุกฟิลด์)
-curl -X GET "http://saletrack.softnix.co.th:5001/api/v1/leads/search?keyword=John" \\
+curl -X GET "http://localhost:5001/api/v1/leads/search?keyword=John" \\
   -H "X-API-Key: your_api_key_here"
 
 # ค้นหาด้วยฟิลด์ที่ระบุ
-curl -X GET "http://saletrack.softnix.co.th:5001/api/v1/leads/search?name=John&company=Acme" \\
+curl -X GET "http://localhost:5001/api/v1/leads/search?name=John&company=Acme" \\
   -H "X-API-Key: your_api_key_here"
 
 # ค้นหาทั้งหมด (ไม่ระบุพารามิเตอร์ใดๆ)
-curl -X GET "http://saletrack.softnix.co.th:5001/api/v1/leads/search" \\
+curl -X GET "http://localhost:5001/api/v1/leads/search" \\
   -H "X-API-Key: your_api_key_here"`,
       jsExample: `// ตัวอย่างการค้นหาด้วยคีย์เวิร์ด
 const searchByKeyword = async (keyword) => {
   const apiKey = "your_api_key_here";
-  const url = new URL("http://saletrack.softnix.co.th:5001/api/v1/leads/search");
+  const url = new URL("http://localhost:5001/api/v1/leads/search");
   url.searchParams.append("keyword", keyword);
 
   try {
@@ -113,7 +113,7 @@ const searchByKeyword = async (keyword) => {
 // ตัวอย่างการค้นหาด้วยฟิลด์ที่ระบุ
 const searchByFields = async (name, company) => {
   const apiKey = "your_api_key_here";
-  const url = new URL("http://saletrack.softnix.co.th:5001/api/v1/leads/search");
+  const url = new URL("http://localhost:5001/api/v1/leads/search");
   
   if (name) url.searchParams.append("name", name);
   if (company) url.searchParams.append("company", company);
@@ -133,7 +133,7 @@ const searchByFields = async (name, company) => {
 // ตัวอย่างการดึงข้อมูลทั้งหมด
 const getAllLeads = async () => {
   const apiKey = "your_api_key_here";
-  const url = "http://saletrack.softnix.co.th:5001/api/v1/leads/search";
+  const url = "http://localhost:5001/api/v1/leads/search";
 
   try {
     const response = await fetch(url, {
@@ -158,14 +158,15 @@ const getAllLeads = async () => {
         { name: "company", type: "string", required: true, description: "ชื่อบริษัทคู่ค้า" },
         { name: "email", type: "string", required: true, description: "อีเมลติดต่อ" },
         { name: "phone", type: "string", required: true, description: "เบอร์โทรศัพท์" },
-        { name: "source", type: "string", required: true, description: "แหล่งที่มา (Website, Referral, Social Media, Event, Other)" },
-        { name: "status", type: "string", required: false, description: "สถานะ (New, Qualified, In Progress, Converted, Lost)" },
+        { name: "source", type: "string", required: true, description: "แหล่งที่มา (Website, Youtube, Search, Referral, Social Media, Event, Other)" },
+        { name: "status", type: "string", required: false, description: "สถานะ (New, Qualified, In Progress, Converted, Lost) - ค่าเริ่มต้น: New" },
         { name: "product", type: "string", required: false, description: "สินค้าหรือบริการที่สนใจ" },
-        { name: "product_register", type: "string", required: false, description: "สินค้าหรือบริการที่ลงทะเบียน (Softnix Logger, Softnix Gen AI, Softnix Data Platform, Softnix PDPA, ZABBIX, Other)" },
+        { name: "productRegister", type: "string", required: false, description: "สินค้าหรือบริการที่ลงทะเบียน (Softnix Logger, Softnix Gen AI, Softnix Data Platform, Softnix PDPA, ZABBIX, Other)" },
         { name: "endUserContact", type: "string", required: false, description: "ผู้ติดต่อฝั่งลูกค้า" },
         { name: "endUserOrganization", type: "string", required: false, description: "องค์กรของลูกค้า" },
         { name: "projectName", type: "string", required: false, description: "ชื่อโปรเจค" },
         { name: "budget", type: "string", required: false, description: "งบประมาณ" },
+        { name: "partnerContact", type: "string", required: false, description: "ผู้ติดต่อพาร์ทเนอร์" },
       ],
       requestExample: JSON.stringify({
         name: "John Doe",
@@ -175,30 +176,36 @@ const getAllLeads = async () => {
         source: "Website",
         status: "New",
         product: "Data Analytics",
-        product_register: "Softnix Data Platform",
-        endUserContact: "Jane Smith",
-        endUserOrganization: "PTT Global Chemical",
-        projectName: "Data Analytics Platform",
-        budget: "5,000,000"
-      }, null, 2),
-      responseExample: JSON.stringify({
-        id: 1,
-        name: "John Doe",
-        company: "Softnix Technology",
-        email: "john@example.com",
-        phone: "0812345678",
-        source: "Website",
-        status: "New",
-        product: "Data Analytics",
-        product_register: "Softnix Data Platform",
+        productRegister: "Softnix Data Platform",
         endUserContact: "Jane Smith",
         endUserOrganization: "PTT Global Chemical",
         projectName: "Data Analytics Platform",
         budget: "5,000,000",
-        created_at: "2024-03-20T08:00:00Z",
-        updated_at: "2024-03-20T08:00:00Z"
+        partnerContact: "คุณพาร์ทเนอร์"
       }, null, 2),
-      curlExample: `curl -X POST "http://saletrack.softnix.co.th:5001/api/v1/leads" \\
+      responseExample: JSON.stringify({
+        lead: {
+          id: 12,
+          name: "John Doe",
+          company: "Softnix Technology",
+          email: "john@example.com",
+          phone: "0812345678",
+          source: "Website",
+          status: "New",
+          product: "Data Analytics",
+          productRegister: "Softnix Data Platform",
+          endUserContact: "Jane Smith",
+          endUserOrganization: "PTT Global Chemical",
+          projectName: "Data Analytics Platform",
+          budget: "5,000,000",
+          createdAt: 1748316094940,
+          updatedAt: 1748316094940,
+          createdBy: "API User",
+          createdById: 2,
+          partnerContact: "คุณพาร์ทเนอร์"
+        }
+      }, null, 2),
+      curlExample: `curl -X POST "http://localhost:5001/api/v1/leads" \\
   -H "X-API-Key: your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -209,14 +216,16 @@ const getAllLeads = async () => {
     "source": "Referral",
     "status": "New",
     "product": "Cloud Storage Platform",
+    "productRegister": "Softnix Data Platform",
     "endUserContact": "Robert Johnson",
     "endUserOrganization": "Global Retail Inc.",
     "projectName": "Data Storage Expansion",
-    "budget": "฿4,500,000"
+    "budget": "฿4,500,000",
+    "partnerContact": "คุณพาร์ทเนอร์"
   }'`,
       jsExample: `// Using fetch
 const apiKey = "your_api_key_here";
-const url = "http://saletrack.softnix.co.th:5001/api/v1/leads";
+const url = "http://localhost:5001/api/v1/leads";
 const data = {
   name: "Jane Smith",
   company: "Tech Solutions Inc.",
@@ -225,10 +234,12 @@ const data = {
   source: "Referral",
   status: "New",
   product: "Cloud Storage Platform",
+  productRegister: "Softnix Data Platform",
   endUserContact: "Robert Johnson",
   endUserOrganization: "Global Retail Inc.",
   projectName: "Data Storage Expansion",
-  budget: "฿4,500,000"
+  budget: "฿4,500,000",
+  partnerContact: "คุณพาร์ทเนอร์"
 };
 
 fetch(url, {
@@ -255,13 +266,15 @@ fetch(url, {
         { name: "company", type: "string", required: false, description: "ชื่อบริษัทคู่ค้า" },
         { name: "email", type: "string", required: false, description: "อีเมลติดต่อ" },
         { name: "phone", type: "string", required: false, description: "เบอร์โทรศัพท์" },
-        { name: "source", type: "string", required: false, description: "แหล่งที่มา (Website, Referral, Social Media, Event, Other)" },
+        { name: "source", type: "string", required: false, description: "แหล่งที่มา (Website, Youtube, Search, Referral, Social Media, Event, Other)" },
         { name: "status", type: "string", required: false, description: "สถานะ (New, Qualified, In Progress, Converted, Lost)" },
         { name: "product", type: "string", required: false, description: "สินค้าหรือบริการที่สนใจ" },
+        { name: "productRegister", type: "string", required: false, description: "สินค้าหรือบริการที่ลงทะเบียน" },
         { name: "endUserContact", type: "string", required: false, description: "ผู้ติดต่อฝั่งลูกค้า" },
         { name: "endUserOrganization", type: "string", required: false, description: "องค์กรของลูกค้า" },
         { name: "projectName", type: "string", required: false, description: "ชื่อโปรเจค" },
         { name: "budget", type: "string", required: false, description: "งบประมาณ" },
+        { name: "partnerContact", type: "string", required: false, description: "ผู้ติดต่อพาร์ทเนอร์" },
       ],
       requestExample: JSON.stringify({
         status: "Qualified",
@@ -288,7 +301,7 @@ fetch(url, {
           createdById: 1
         }
       }, null, 2),
-      curlExample: `curl -X PATCH "http://saletrack.softnix.co.th:5001/api/v1/leads/12" \\
+      curlExample: `curl -X PATCH "http://localhost:5001/api/v1/leads/12" \\
   -H "X-API-Key: your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -299,7 +312,7 @@ fetch(url, {
       jsExample: `// Using fetch
 const apiKey = "your_api_key_here";
 const leadId = 12;
-const url = \`http://saletrack.softnix.co.th:5001/api/v1/leads/\${leadId}\`;
+const url = \`http://localhost:5001/api/v1/leads/\${leadId}\`;
 const data = {
   status: "Qualified",
   budget: "฿5,200,000",
@@ -355,7 +368,7 @@ fetch(url, {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Base URL</h3>
                 <div className="bg-gray-100 p-3 rounded-md">
-                  <code className="text-sm text-pink-600">http://saletrack.softnix.co.th:5001</code>
+                  <code className="text-sm text-pink-600">http://localhost:5001</code>
                 </div>
                 <p className="mt-2 text-gray-600">
                   URL หลักสำหรับเรียกใช้งาน API ทั้งหมด ในการใช้งานจริงให้แทนที่ด้วย URL ของเซิร์ฟเวอร์ของคุณ
@@ -430,7 +443,7 @@ fetch(url, {
                       <Code className="h-4 w-4" />
                     </Button>
                     <pre className="text-sm whitespace-pre-wrap">
-{`curl -X GET "http://saletrack.softnix.co.th:5001/api/v1/leads/search" \\
+{`curl -X GET "http://localhost:5001/api/v1/leads/search" \\
   -H "X-API-Key: your_api_key_here"`}
                     </pre>
                   </div>
